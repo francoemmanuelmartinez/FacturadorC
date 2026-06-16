@@ -134,11 +134,8 @@
     <ResourceCompile Include="app.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="CppCLR_Utils.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
-    <ClInclude Include="rk1_Utils_demo.h" />
-    <ClInclude Include="SimpleUnitTests.h" />
     <ClInclude Include="Models\Usuario.h" />
     <ClInclude Include="Models\Cliente.h" />
     <ClInclude Include="Models\Producto.h" />
