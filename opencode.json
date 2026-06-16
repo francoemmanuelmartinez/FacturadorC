@@ -1,0 +1,44 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "permission": {
+    "read": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "edit": "allow",
+    "write": "allow",
+    "patch": "allow",
+    "glob": "allow",
+    "grep": "allow",
+    "bash": "allow",
+    "task": "allow",
+    "skill": "allow",
+    "lsp": "allow",
+    "question": "allow",
+    "webfetch": "allow",
+    "websearch": "allow",
+    "external_directory": "ask",
+    "doom_loop": "ask"
+  },
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "permission": {
+        "edit": "allow",
+        "bash": "allow"
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "permission": {
+        "edit": {
+          "*": "deny",
+          ".opencode/plans/*.md": "allow"
+        },
+        "bash": "allow"
+      }
+    }
+  }
+}

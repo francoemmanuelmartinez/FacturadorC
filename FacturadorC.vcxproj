@@ -135,20 +135,40 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="CppCLR_Utils.h" />
-    <ClInclude Include="Form1.h">
-      <FileType>CppForm</FileType>
-    </ClInclude>
-    <ClInclude Include="Header1.h" />
-    <ClInclude Include="Header2.h" />
     <ClInclude Include="pch.h" />
     <ClInclude Include="Resource.h" />
     <ClInclude Include="rk1_Utils_demo.h" />
     <ClInclude Include="SimpleUnitTests.h" />
+    <ClInclude Include="Models\Usuario.h" />
+    <ClInclude Include="Models\Cliente.h" />
+    <ClInclude Include="Models\Producto.h" />
+    <ClInclude Include="Models\Factura.h" />
+    <ClInclude Include="Models\DetalleFactura.h" />
+    <ClInclude Include="Servicios\Conexion.h" />
+    <ClInclude Include="Servicios\Autenticacion.h" />
+    <ClInclude Include="Vistas\VentanaPrincipal.h" />
+    <ClInclude Include="Vistas\VistaLogin.h" />
+    <ClInclude Include="Vistas\VistaRegistro.h" />
+    <ClInclude Include="Vistas\VistaAdmin.h" />
+    <ClInclude Include="Vistas\VistaCajero.h" />
+    <ClInclude Include="Vistas\VistaFactura.h" />
+    <ClInclude Include="Vistas\VistaDetallesFactura.h" />
+    <ClInclude Include="Vistas\VistaClienteABM.h" />
+    <ClInclude Include="Vistas\VistaUsuarioABM.h" />
+    <ClInclude Include="Vistas\VistaDepositoABM.h" />
+    <ClInclude Include="Vistas\VistaFormulario.h" />
+    <ClInclude Include="Controladores\ControladorLogin.h" />
+    <ClInclude Include="Controladores\ControladorRegistro.h" />
+    <ClInclude Include="Controladores\ControladorAdmin.h" />
+    <ClInclude Include="Controladores\ControladorCajero.h" />
+    <ClInclude Include="Controladores\ControladorFactura.h" />
+    <ClInclude Include="Controladores\ControladorClienteABM.h" />
+    <ClInclude Include="Controladores\ControladorUsuarioABM.h" />
+    <ClInclude Include="Controladores\ControladorDepositoABM.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />
     <ClCompile Include="CppCLR_WinFormsProject.cpp" />
-    <ClCompile Include="Form1.cpp" />
     <ClCompile Include="pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">Create</PrecompiledHeader>
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">Create</PrecompiledHeader>
@@ -160,16 +180,14 @@
     <Image Include="app.ico" />
   </ItemGroup>
   <ItemGroup>
+    <Reference Include="MySql.Data">
+      <HintPath>MySql.Data.dll</HintPath>
+    </Reference>
     <Reference Include="System" />
     <Reference Include="System.Data" />
     <Reference Include="System.Drawing" />
     <Reference Include="System.Windows.Forms" />
     <Reference Include="System.Xml" />
-  </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Form1.resx">
-      <DependentUpon>Form1.h</DependentUpon>
-    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

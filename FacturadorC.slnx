@@ -3,5 +3,5 @@
     <Platform Name="x64" />
     <Platform Name="x86" />
   </Configurations>
-  <Project Path="FacturadorC.vcxproj" />
+  <Project Path="FacturadorC.vcxproj" Id="d4c5c0b0-4728-4f14-be05-cfa7330071a6" />
 </Solution>

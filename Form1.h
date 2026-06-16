@@ -3,9 +3,6 @@
 // uncomment to execute the rk1-utils:
 //    #include "rk1_Utils_demo.h"  // shows how the rk1-utils can be used
 
-#include "Header1.h"
-#include "Header2.h"
-
 namespace CppCLRWinFormsProject {
 
   using namespace System;
@@ -14,7 +11,7 @@ namespace CppCLRWinFormsProject {
   using namespace System::Windows::Forms;
   using namespace System::Data;
   using namespace System::Drawing;
-
+  using namespace MySql::Data::MySqlClient;
   /// <summary>
   /// Summary for Form1
   /// </summary>
@@ -134,13 +131,13 @@ namespace CppCLRWinFormsProject {
   private: System::Void button_plus_1_Click(System::Object^ sender, System::EventArgs^ e)
   {
     int n = Convert::ToInt32(in_textBox->Text);
-    int result = N_header_1::plus_1(n);
-    out_textBox->AppendText(String::Format("plus_1({0})={1}\r\n", n, result));
+    //int result = N_header_1::plus_1(n);
+    //out_textBox->AppendText(String::Format("plus_1({0})={1}\r\n", n, result));
   }
 
   private: System::Void button_plus_2_Click(System::Object^ sender, System::EventArgs^ e)
   {
-    N_header_2::plus_2_Click(in_textBox, out_textBox);
+      //N_header_2::plus_2_Click(in_textBox, out_textBox);
   }
 
 
