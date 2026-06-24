@@ -5,6 +5,8 @@
 #include "..\Vistas\VentanaPrincipal.h"
 #include "..\Vistas\VistaClienteABM.h"
 #include "..\Vistas\VistaFormulario.h"
+#include "..\Filtros\ValidadorCampos.h"
+#include "..\Filtros\ValidadorMail.h"
 
 namespace Controladores {
     ref class ControladorAdmin;
@@ -83,14 +85,24 @@ namespace Controladores {
 
         void agregar_Click(Object^ sender, EventArgs^ e) {
             auto valores = VistaFormulario::mostrarDialogo(L"Nuevo Cliente",
-                gcnew VistaFormulario::Campo(L"Nombre:"),
-                gcnew VistaFormulario::Campo(L"Apellido:"),
-                gcnew VistaFormulario::Campo(L"DNI:"),
-                gcnew VistaFormulario::Campo(L"Telefono:"),
-                gcnew VistaFormulario::Campo(L"Direccion:"),
-                gcnew VistaFormulario::Campo(L"Mail:")
+                gcnew VistaFormulario::Campo(L"Nombre:", L"", L"Texto", true),
+                gcnew VistaFormulario::Campo(L"Apellido:", L"", L"Texto", true),
+                gcnew VistaFormulario::Campo(L"DNI:", L"", L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Telefono:", L"", L"Numerico"),
+                gcnew VistaFormulario::Campo(L"Direccion:", L"", L"Alfanumerico"),
+                gcnew VistaFormulario::Campo(L"Mail:", L"", L"Alfanumerico", true)
             );
             if (valores != nullptr) {
+                String^ error = ValidadorCampos::validarRequeridos(
+                    L"Nombre", valores[L"Nombre:"],
+                    L"Apellido", valores[L"Apellido:"],
+                    L"DNI", valores[L"DNI:"],
+                    L"Telefono", valores[L"Telefono:"],
+                    L"Direccion", valores[L"Direccion:"],
+                    L"Mail", valores[L"Mail:"]
+                );
+                if (error != nullptr) { MessageBox::Show(L"Campos requeridos: " + error); return; }
+                if (!ValidadorMail::esValido(valores[L"Mail:"])) { MessageBox::Show(L"Mail invalido"); return; }
                 int id = this->agregarCliente(valores[L"Nombre:"], valores[L"Apellido:"], valores[L"DNI:"],
                     valores[L"Telefono:"], valores[L"Direccion:"], valores[L"Mail:"]);
                 if (id > -1) this->poblarTabla();
@@ -106,14 +118,24 @@ namespace Controladores {
             int idCliente = safe_cast<int>(fila->Cells[0]->Value);
 
             auto valores = VistaFormulario::mostrarDialogo(L"Modificar Cliente",
-                gcnew VistaFormulario::Campo(L"Nombre:", fila->Cells[1]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Apellido:", fila->Cells[2]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"DNI:", fila->Cells[3]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Telefono:", fila->Cells[4]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Direccion:", fila->Cells[5]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Mail:", fila->Cells[6]->Value->ToString())
+                gcnew VistaFormulario::Campo(L"Nombre:", fila->Cells[1]->Value->ToString(), L"Texto", true),
+                gcnew VistaFormulario::Campo(L"Apellido:", fila->Cells[2]->Value->ToString(), L"Texto", true),
+                gcnew VistaFormulario::Campo(L"DNI:", fila->Cells[3]->Value->ToString(), L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Telefono:", fila->Cells[4]->Value->ToString(), L"Numerico"),
+                gcnew VistaFormulario::Campo(L"Direccion:", fila->Cells[5]->Value->ToString(), L"Alfanumerico"),
+                gcnew VistaFormulario::Campo(L"Mail:", fila->Cells[6]->Value->ToString(), L"Alfanumerico", true)
             );
             if (valores != nullptr) {
+                String^ error = ValidadorCampos::validarRequeridos(
+                    L"Nombre", valores[L"Nombre:"],
+                    L"Apellido", valores[L"Apellido:"],
+                    L"DNI", valores[L"DNI:"],
+                    L"Telefono", valores[L"Telefono:"],
+                    L"Direccion", valores[L"Direccion:"],
+                    L"Mail", valores[L"Mail:"]
+                );
+                if (error != nullptr) { MessageBox::Show(L"Campos requeridos: " + error); return; }
+                if (!ValidadorMail::esValido(valores[L"Mail:"])) { MessageBox::Show(L"Mail invalido"); return; }
                 if (this->modificarCliente(idCliente, valores[L"Nombre:"], valores[L"Apellido:"], valores[L"DNI:"],
                     valores[L"Telefono:"], valores[L"Direccion:"], valores[L"Mail:"])) {
                     this->poblarTabla();
@@ -186,6 +208,13 @@ namespace Controladores {
 
         int agregarCliente(String^ nombre, String^ apellido, String^ dni, String^ telefono, String^ direccion, String^ mail) {
             c->conectar();
+            String^ sqlDni = "SELECT dni FROM clientes WHERE dni = ?dni";
+            auto cmdDni = gcnew MySqlCommand(sqlDni, c->con);
+            cmdDni->Parameters->AddWithValue("?dni", dni);
+            auto readerDni = cmdDni->ExecuteReader();
+            if (readerDni->Read()) { MessageBox::Show(L"Ya existe un cliente con ese DNI"); readerDni->Close(); return -1; }
+            readerDni->Close();
+
             String^ sqlSelect = "SELECT mail FROM clientes WHERE mail = ?mail";
             auto cmdSelect = gcnew MySqlCommand(sqlSelect, c->con);
             cmdSelect->Parameters->AddWithValue("?mail", mail);
@@ -209,6 +238,14 @@ namespace Controladores {
 
         bool modificarCliente(int id, String^ nombre, String^ apellido, String^ dni, String^ telefono, String^ direccion, String^ mail) {
             c->conectar();
+            String^ sqlDni = "SELECT dni FROM clientes WHERE dni = ?dni AND id != ?id";
+            auto cmdDni = gcnew MySqlCommand(sqlDni, c->con);
+            cmdDni->Parameters->AddWithValue("?dni", dni);
+            cmdDni->Parameters->AddWithValue("?id", id);
+            auto readerDni = cmdDni->ExecuteReader();
+            if (readerDni->Read()) { MessageBox::Show(L"Ese DNI ya pertenece a otro cliente"); readerDni->Close(); return false; }
+            readerDni->Close();
+
             String^ sqlSelect = "SELECT mail FROM clientes WHERE mail = ?mail AND id != ?id";
             auto cmdSelect = gcnew MySqlCommand(sqlSelect, c->con);
             cmdSelect->Parameters->AddWithValue("?mail", mail);

@@ -8,8 +8,8 @@ namespace Models {
     public:
         property Producto^ Producto;
         property int Cantidad;
-        property int PrecioUnitario;
+        property double PrecioUnitario;
         property int Descuento;
-        property int Subtotal;
+        property double Subtotal;
     };
 }

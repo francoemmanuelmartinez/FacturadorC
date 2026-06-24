@@ -31,6 +31,9 @@ void ControladorLogin::logear() {
     else if (rol == L"Deposito") {
         gcnew ControladorDepositoABM(this->usuario, this->ventanaPrincipal);
     }
+    else if (rol == L"Ninguno") {
+        MessageBox::Show(L"Su cuenta no tiene un rol asignado. Contacte a un administrador.");
+    }
     else {
         MessageBox::Show(L"USUARIO INVALIDO");
     }
@@ -51,6 +54,10 @@ void ControladorAdmin::botonFacturar_Click(Object^ sender, EventArgs^ e) {
 
 void ControladorAdmin::botonDeposito_Click(Object^ sender, EventArgs^ e) {
     gcnew ControladorDepositoABM(this->usuario, this->ventanaPrincipal);
+}
+
+void ControladorAdmin::botonProveedores_Click(Object^ sender, EventArgs^ e) {
+    gcnew ControladorProveedorABM(this->usuario, this->ventanaPrincipal);
 }
 
 void ControladorAdmin::cerrarSesion_Click(Object^ sender, EventArgs^ e) {
@@ -91,12 +98,12 @@ void ControladorCajero::modificarClienteButton_Click(Object^ sender, EventArgs^ 
     }
     int id = Int32::Parse(idStr);
     auto valores = VistaFormulario::mostrarDialogo(L"Modificar Cliente",
-        gcnew VistaFormulario::Campo(L"Nombre:", this->vista->textFieldNombreCliente->Text),
-        gcnew VistaFormulario::Campo(L"Apellido:", this->vista->textFieldApellidoCliente->Text),
-        gcnew VistaFormulario::Campo(L"DNI:", this->vista->textFieldDNICliente->Text),
-        gcnew VistaFormulario::Campo(L"Telefono:", this->vista->textFieldTelefonoCliente->Text),
-        gcnew VistaFormulario::Campo(L"Direccion:", this->vista->textFieldDomicilioCliente->Text),
-        gcnew VistaFormulario::Campo(L"Mail:", this->vista->textFieldMailCliente->Text)
+        gcnew VistaFormulario::Campo(L"Nombre:", this->vista->textFieldNombreCliente->Text, L"Texto", true),
+        gcnew VistaFormulario::Campo(L"Apellido:", this->vista->textFieldApellidoCliente->Text, L"Texto", true),
+        gcnew VistaFormulario::Campo(L"DNI:", this->vista->textFieldDNICliente->Text, L"Numerico", true),
+        gcnew VistaFormulario::Campo(L"Telefono:", this->vista->textFieldTelefonoCliente->Text, L"Numerico"),
+        gcnew VistaFormulario::Campo(L"Direccion:", this->vista->textFieldDomicilioCliente->Text, L"Alfanumerico"),
+        gcnew VistaFormulario::Campo(L"Mail:", this->vista->textFieldMailCliente->Text, L"Alfanumerico", true)
     );
     if (valores != nullptr) {
         auto confirm = MessageBox::Show(L"?Confirmar modificacion del cliente?", L"Confirmar", MessageBoxButtons::YesNo);
@@ -117,12 +124,12 @@ void ControladorCajero::modificarClienteButton_Click(Object^ sender, EventArgs^ 
 
 void ControladorCajero::nuevoClienteButton_Click(Object^ sender, EventArgs^ e) {
     auto valores = VistaFormulario::mostrarDialogo(L"Nuevo Cliente",
-        gcnew VistaFormulario::Campo(L"Nombre:"),
-        gcnew VistaFormulario::Campo(L"Apellido:"),
-        gcnew VistaFormulario::Campo(L"DNI:"),
-        gcnew VistaFormulario::Campo(L"Telefono:"),
-        gcnew VistaFormulario::Campo(L"Direccion:"),
-        gcnew VistaFormulario::Campo(L"Mail:")
+        gcnew VistaFormulario::Campo(L"Nombre:", L"", L"Texto", true),
+        gcnew VistaFormulario::Campo(L"Apellido:", L"", L"Texto", true),
+        gcnew VistaFormulario::Campo(L"DNI:", L"", L"Numerico", true),
+        gcnew VistaFormulario::Campo(L"Telefono:", L"", L"Numerico"),
+        gcnew VistaFormulario::Campo(L"Direccion:", L"", L"Alfanumerico"),
+        gcnew VistaFormulario::Campo(L"Mail:", L"", L"Alfanumerico", true)
     );
     if (valores != nullptr) {
         auto ctrl = gcnew ControladorClienteABM();
@@ -149,8 +156,9 @@ void ControladorCajero::buscarProductoButton_Click(Object^ sender, EventArgs^ e)
         auto p = resultados[0];
         this->vista->textFieldIDProducto->Text = p->Id.ToString();
         this->vista->textFieldDescripcionProducto->Text = p->Descripcion;
-        this->vista->textFieldPrecioProducto->Text = p->Precio.ToString();
+        this->vista->textFieldPrecioProducto->Text = p->Precio.ToString(L"F2");
         this->vista->textFieldStock->Text = p->Stock.ToString();
+        this->vista->textFieldProveedorProducto->Text = p->NombreProveedor != nullptr ? p->NombreProveedor : L"";
     }
 }
 
@@ -162,16 +170,16 @@ void ControladorCajero::modificarProductoButton_Click(Object^ sender, EventArgs^
     }
     int id = Int32::Parse(idStr);
     auto valores = VistaFormulario::mostrarDialogo(L"Modificar Producto",
-        gcnew VistaFormulario::Campo(L"Descripcion:", this->vista->textFieldDescripcionProducto->Text),
-        gcnew VistaFormulario::Campo(L"Precio:", this->vista->textFieldPrecioProducto->Text),
-        gcnew VistaFormulario::Campo(L"Stock:", this->vista->textFieldStock->Text)
+        gcnew VistaFormulario::Campo(L"Descripcion:", this->vista->textFieldDescripcionProducto->Text, L"Alfanumerico", true),
+        gcnew VistaFormulario::Campo(L"Precio:", this->vista->textFieldPrecioProducto->Text, L"Precio", true),
+        gcnew VistaFormulario::Campo(L"Stock:", this->vista->textFieldStock->Text, L"Numerico", true)
     );
     if (valores != nullptr) {
         auto confirm = MessageBox::Show(L"?Confirmar modificacion del producto?", L"Confirmar", MessageBoxButtons::YesNo);
         if (confirm == DialogResult::Yes) {
             auto ctrl = gcnew ControladorDepositoABM();
             bool ok = ctrl->modificarProducto(id, valores[L"Descripcion:"],
-                Int32::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]));
+                Double::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]), 0);
             if (ok) {
                 this->vista->textFieldDescripcionProducto->Text = valores[L"Descripcion:"];
                 this->vista->textFieldPrecioProducto->Text = valores[L"Precio:"];
@@ -182,15 +190,26 @@ void ControladorCajero::modificarProductoButton_Click(Object^ sender, EventArgs^
 }
 
 void ControladorCajero::nuevoProductoButton_Click(Object^ sender, EventArgs^ e) {
+    auto ctrlProv = gcnew ControladorProveedorABM();
+    auto proveedores = ctrlProv->obtenerProveedoresPorHabilitado(1);
+    auto opciones = gcnew array<String^>(proveedores->Count);
+    for (int i = 0; i < proveedores->Count; i++) {
+        opciones[i] = proveedores[i]->Id + L" - " + proveedores[i]->Nombre;
+    }
     auto valores = VistaFormulario::mostrarDialogo(L"Nuevo Producto",
-        gcnew VistaFormulario::Campo(L"Descripcion:"),
-        gcnew VistaFormulario::Campo(L"Precio:"),
-        gcnew VistaFormulario::Campo(L"Stock:")
+        gcnew VistaFormulario::Campo(L"Descripcion:", L"", L"Alfanumerico", true),
+        gcnew VistaFormulario::Campo(L"Precio:", L"", L"Precio", true),
+        gcnew VistaFormulario::Campo(L"Stock:", L"", L"Numerico", true),
+        gcnew VistaFormulario::Campo(L"Proveedor:", opciones, true)
     );
     if (valores != nullptr) {
         auto ctrl = gcnew ControladorDepositoABM();
+        String^ selProv = valores[L"Proveedor:"];
+        int idProveedor = 0;
+        if (!String::IsNullOrEmpty(selProv) && selProv->Contains(L" - "))
+            idProveedor = Int32::Parse(selProv->Split(gcnew array<String^> { L" - " }, StringSplitOptions::None)[0]);
         int id = ctrl->agregarProducto(valores[L"Descripcion:"],
-            Int32::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]));
+            Double::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]), idProveedor);
         if (id > -1) {
             this->vista->textFieldIDProducto->Text = id.ToString();
             this->vista->textFieldDescripcionProducto->Text = valores[L"Descripcion:"];
@@ -248,6 +267,12 @@ void ControladorDepositoABM::volverButton_Click(Object^ sender, EventArgs^ e) {
     else gcnew ControladorAdmin(this->usuario, this->ventanaPrincipal);
 }
 
+// === ControladorProveedorABM ===
+void ControladorProveedorABM::volverButton_Click(Object^ sender, EventArgs^ e) {
+    if (this->usuario->Rol == L"Deposito") gcnew ControladorLogin(this->ventanaPrincipal);
+    else gcnew ControladorAdmin(this->usuario, this->ventanaPrincipal);
+}
+
 // === ControladorUsuarioABM ===
 void ControladorUsuarioABM::volverButton_Click(Object^ sender, EventArgs^ e) {
     gcnew ControladorAdmin(this->usuario, this->ventanaPrincipal);
@@ -255,6 +280,18 @@ void ControladorUsuarioABM::volverButton_Click(Object^ sender, EventArgs^ e) {
 
 // === ControladorRegistro ===
 void ControladorRegistro::registrarse_Click(Object^ sender, EventArgs^ e) {
+    String^ error = ValidadorCampos::validarRequeridos(
+        L"Nombre", this->vistaRegistro->nombreTF->Text,
+        L"Apellido", this->vistaRegistro->apellidoTF->Text,
+        L"DNI", this->vistaRegistro->dniTF->Text,
+        L"Telefono", this->vistaRegistro->telefonoTF->Text,
+        L"Direccion", this->vistaRegistro->direccionTF->Text,
+        L"Mail", this->vistaRegistro->mailTF->Text,
+        L"Password", this->vistaRegistro->password->Text
+    );
+    if (error != nullptr) { MessageBox::Show(L"Campos requeridos: " + error); return; }
+    if (!ValidadorMail::esValido(this->vistaRegistro->mailTF->Text)) { MessageBox::Show(L"Mail invalido"); return; }
+    if (this->vistaRegistro->password->Text->Length < 6) { MessageBox::Show(L"La contrasena debe tener al menos 6 caracteres"); return; }
     if (this->registrar(
         this->vistaRegistro->nombreTF->Text,
         this->vistaRegistro->apellidoTF->Text,

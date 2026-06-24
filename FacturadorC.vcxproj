@@ -139,6 +139,7 @@
     <ClInclude Include="Models\Usuario.h" />
     <ClInclude Include="Models\Cliente.h" />
     <ClInclude Include="Models\Producto.h" />
+    <ClInclude Include="Models\Proveedor.h" />
     <ClInclude Include="Models\Factura.h" />
     <ClInclude Include="Models\DetalleFactura.h" />
     <ClInclude Include="Servicios\Conexion.h" />
@@ -154,6 +155,7 @@
     <ClInclude Include="Vistas\VistaUsuarioABM.h" />
     <ClInclude Include="Vistas\VistaDepositoABM.h" />
     <ClInclude Include="Vistas\VistaFormulario.h" />
+    <ClInclude Include="Vistas\VistaProveedorABM.h" />
     <ClInclude Include="Controladores\ControladorLogin.h" />
     <ClInclude Include="Controladores\ControladorRegistro.h" />
     <ClInclude Include="Controladores\ControladorAdmin.h" />
@@ -162,6 +164,15 @@
     <ClInclude Include="Controladores\ControladorClienteABM.h" />
     <ClInclude Include="Controladores\ControladorUsuarioABM.h" />
     <ClInclude Include="Controladores\ControladorDepositoABM.h" />
+    <ClInclude Include="Controladores\ControladorProveedorABM.h" />
+    <ClInclude Include="Controladores\ControladoresImpl.h" />
+    <ClInclude Include="Filtros\FiltroNumerico.h" />
+    <ClInclude Include="Filtros\FiltroTexto.h" />
+    <ClInclude Include="Filtros\FiltroAlfanumerico.h" />
+    <ClInclude Include="Filtros\ValidadorMail.h" />
+    <ClInclude Include="Filtros\ValidadorCampos.h" />
+    <ClInclude Include="Filtros\ValidadorCantidadAdmin.h" />
+    <ClInclude Include="Filtros\FiltroPrecio.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="AssemblyInfo.cpp" />

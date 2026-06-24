@@ -4,6 +4,9 @@
 #include "..\Vistas\VentanaPrincipal.h"
 #include "..\Vistas\VistaUsuarioABM.h"
 #include "..\Vistas\VistaFormulario.h"
+#include "..\Filtros\ValidadorCampos.h"
+#include "..\Filtros\ValidadorMail.h"
+#include "..\Filtros\ValidadorCantidadAdmin.h"
 
 namespace Controladores { ref class ControladorAdmin; }
 
@@ -39,7 +42,8 @@ namespace Controladores {
             vista->tablaUsuarios->Rows->Clear();
             auto usuarios = obtenerUsuariosPorHabilitado(filtroActual);
             for each (Usuario^ u in usuarios) {
-                vista->tablaUsuarios->Rows->Add(u->Nombre, u->Apellido, u->Dni, u->Telefono, u->Direccion, u->Mail, u->Rol, u->Password, u->Habilitado);
+                int rowIdx = vista->tablaUsuarios->Rows->Add(u->Nombre, u->Apellido, u->Dni, u->Telefono, u->Direccion, u->Mail, u->Rol, u->Password, u->Habilitado);
+                vista->tablaUsuarios->Rows[rowIdx]->Tag = u->Id;
             }
         }
 
@@ -55,19 +59,33 @@ namespace Controladores {
             auto u = this->buscarUsuario(texto, this->filtroActual);
             if (u != nullptr) {
                 this->vista->tablaUsuarios->Rows->Clear();
-                this->vista->tablaUsuarios->Rows->Add(u->Nombre, u->Apellido, u->Dni, u->Telefono, u->Direccion, u->Mail, u->Rol, u->Password, u->Habilitado);
+                int rowIdx = this->vista->tablaUsuarios->Rows->Add(u->Nombre, u->Apellido, u->Dni, u->Telefono, u->Direccion, u->Mail, u->Rol, u->Password, u->Habilitado);
+                this->vista->tablaUsuarios->Rows[rowIdx]->Tag = u->Id;
             }
         }
 
         void agregarButton_Click(Object^ sender, EventArgs^ e) {
             auto valores = VistaFormulario::mostrarDialogo(L"Nuevo Usuario",
-                gcnew VistaFormulario::Campo(L"Nombre:"), gcnew VistaFormulario::Campo(L"Apellido:"),
-                gcnew VistaFormulario::Campo(L"DNI:"), gcnew VistaFormulario::Campo(L"Telefono:"),
-                gcnew VistaFormulario::Campo(L"Direccion:"), gcnew VistaFormulario::Campo(L"Mail:"),
-                gcnew VistaFormulario::Campo(L"Contrasena:", true),
-                gcnew VistaFormulario::Campo(L"Rol:", gcnew array<String^> { L"Administrador", L"Cajero", L"Deposito" })
+                gcnew VistaFormulario::Campo(L"Nombre:", L"", L"Texto", true), gcnew VistaFormulario::Campo(L"Apellido:", L"", L"Texto", true),
+                gcnew VistaFormulario::Campo(L"DNI:", L"", L"Numerico", true), gcnew VistaFormulario::Campo(L"Telefono:", L"", L"Numerico"),
+                gcnew VistaFormulario::Campo(L"Direccion:", L"", L"Alfanumerico"), gcnew VistaFormulario::Campo(L"Mail:", L"", L"Alfanumerico", true),
+                gcnew VistaFormulario::Campo(L"Contrasena:", true, true),
+                gcnew VistaFormulario::Campo(L"Rol:", gcnew array<String^> { L"Administrador", L"Cajero", L"Deposito" }, true)
             );
             if (valores != nullptr) {
+                String^ error = ValidadorCampos::validarRequeridos(
+                    L"Nombre", valores[L"Nombre:"],
+                    L"Apellido", valores[L"Apellido:"],
+                    L"DNI", valores[L"DNI:"],
+                    L"Telefono", valores[L"Telefono:"],
+                    L"Direccion", valores[L"Direccion:"],
+                    L"Mail", valores[L"Mail:"],
+                    L"Contrasena", valores[L"Contrasena:"],
+                    L"Rol", valores[L"Rol:"]
+                );
+                if (error != nullptr) { MessageBox::Show(L"Campos requeridos: " + error); return; }
+                if (!ValidadorMail::esValido(valores[L"Mail:"])) { MessageBox::Show(L"Mail invalido"); return; }
+                if (valores[L"Contrasena:"]->Length < 6) { MessageBox::Show(L"La contrasena debe tener al menos 6 caracteres"); return; }
                 if (this->agregarUsuario(valores[L"Nombre:"], valores[L"Apellido:"], valores[L"DNI:"], valores[L"Telefono:"],
                     valores[L"Direccion:"], valores[L"Mail:"], valores[L"Contrasena:"], valores[L"Rol:"])) this->poblarTabla();
             }
@@ -76,20 +94,38 @@ namespace Controladores {
         void modificarButton_Click(Object^ sender, EventArgs^ e) {
             if (this->vista->tablaUsuarios->SelectedRows->Count == 0) { MessageBox::Show(L"Seleccione un usuario de la tabla"); return; }
             auto fila = this->vista->tablaUsuarios->SelectedRows[0];
+            int idUsuario = Convert::ToInt32(fila->Tag);
             String^ dniOriginal = fila->Cells[2]->Value->ToString();
 
             auto valores = VistaFormulario::mostrarDialogo(L"Modificar Usuario",
-                gcnew VistaFormulario::Campo(L"Nombre:", fila->Cells[0]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Apellido:", fila->Cells[1]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"DNI:", dniOriginal),
-                gcnew VistaFormulario::Campo(L"Telefono:", fila->Cells[3]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Direccion:", fila->Cells[4]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Mail:", fila->Cells[5]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Rol:", gcnew array<String^> { L"Administrador", L"Cajero", L"Deposito" }, fila->Cells[6]->Value->ToString()),
+                gcnew VistaFormulario::Campo(L"Nombre:", fila->Cells[0]->Value->ToString(), L"Texto", true),
+                gcnew VistaFormulario::Campo(L"Apellido:", fila->Cells[1]->Value->ToString(), L"Texto", true),
+                gcnew VistaFormulario::Campo(L"DNI:", dniOriginal, L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Telefono:", fila->Cells[3]->Value->ToString(), L"Numerico"),
+                gcnew VistaFormulario::Campo(L"Direccion:", fila->Cells[4]->Value->ToString(), L"Alfanumerico"),
+                gcnew VistaFormulario::Campo(L"Mail:", fila->Cells[5]->Value->ToString(), L"Alfanumerico", true),
+                gcnew VistaFormulario::Campo(L"Rol:", gcnew array<String^> { L"Administrador", L"Cajero", L"Deposito" }, fila->Cells[6]->Value->ToString(), true),
                 gcnew VistaFormulario::Campo(L"Contrasena:", true, fila->Cells[7]->Value->ToString())
             );
             if (valores != nullptr) {
-                if (this->modificarUsuario(dniOriginal, valores[L"Nombre:"], valores[L"Apellido:"], valores[L"DNI:"],
+                String^ error = ValidadorCampos::validarRequeridos(
+                    L"Nombre", valores[L"Nombre:"],
+                    L"Apellido", valores[L"Apellido:"],
+                    L"DNI", valores[L"DNI:"],
+                    L"Telefono", valores[L"Telefono:"],
+                    L"Direccion", valores[L"Direccion:"],
+                    L"Mail", valores[L"Mail:"],
+                    L"Contrasena", valores[L"Contrasena:"],
+                    L"Rol", valores[L"Rol:"]
+                );
+                if (error != nullptr) { MessageBox::Show(L"Campos requeridos: " + error); return; }
+                if (!ValidadorMail::esValido(valores[L"Mail:"])) { MessageBox::Show(L"Mail invalido"); return; }
+                if (valores[L"Contrasena:"]->Length < 6) { MessageBox::Show(L"La contrasena debe tener al menos 6 caracteres"); return; }
+                String^ rolActual = fila->Cells[6]->Value->ToString();
+                if (rolActual == L"Administrador" && valores[L"Rol:"] != L"Administrador") {
+                    if (!ValidadorCantidadAdmin::permitirCambiarRol(idUsuario)) return;
+                }
+                if (this->modificarUsuario(idUsuario, valores[L"Nombre:"], valores[L"Apellido:"], valores[L"DNI:"],
                     valores[L"Telefono:"], valores[L"Direccion:"], valores[L"Mail:"], valores[L"Rol:"], valores[L"Contrasena:"])) this->poblarTabla();
             }
         }
@@ -100,6 +136,10 @@ namespace Controladores {
             String^ dni = fila->Cells[2]->Value->ToString();
             int habilitadoActual = safe_cast<int>(fila->Cells[8]->Value);
             String^ nuevoEstado = habilitadoActual == 1 ? L"deshabilitar" : L"habilitar";
+            if (habilitadoActual == 1 && fila->Cells[6]->Value->ToString() == L"Administrador") {
+                int idActual = this->usuario != nullptr ? Convert::ToInt32(this->usuario->Id) : 0;
+                if (!ValidadorCantidadAdmin::permitirDeshabilitar(idActual)) return;
+            }
             auto result = MessageBox::Show(L"?Esta seguro de " + nuevoEstado + L" al usuario con DNI " + dni + L"?",
                 nuevoEstado == L"deshabilitar" ? L"Deshabilitar Usuario" : L"Habilitar Usuario", MessageBoxButtons::YesNo);
             if (result == DialogResult::Yes) { if (this->toggleHabilitado(dni)) this->poblarTabla(); }
@@ -127,13 +167,13 @@ namespace Controladores {
         List<Usuario^>^ obtenerUsuariosPorHabilitado(int habilitado) {
             auto usuarios = gcnew List<Usuario^>();
             c->conectar();
-            String^ sql = "SELECT nombre, apellido, dni, telefono, direccion, mail, rol, password, habilitado FROM usuarios WHERE habilitado = ?habilitado";
+            String^ sql = "SELECT id, nombre, apellido, dni, telefono, direccion, mail, rol, password, habilitado FROM usuarios WHERE habilitado = ?habilitado";
             auto cmd = gcnew MySqlCommand(sql, c->con);
             cmd->Parameters->AddWithValue("?habilitado", habilitado);
             auto rs = cmd->ExecuteReader();
             while (rs->Read()) {
                 auto u = gcnew Usuario();
-                u->Nombre = rs["nombre"]->ToString(); u->Apellido = rs["apellido"]->ToString();
+                u->Id = rs["id"]->ToString(); u->Nombre = rs["nombre"]->ToString(); u->Apellido = rs["apellido"]->ToString();
                 u->Dni = rs["dni"]->ToString(); u->Telefono = rs["telefono"]->ToString();
                 u->Direccion = rs["direccion"]->ToString(); u->Mail = rs["mail"]->ToString();
                 u->Rol = rs["rol"]->ToString(); u->Password = rs["password"]->ToString();
@@ -146,6 +186,13 @@ namespace Controladores {
 
         bool agregarUsuario(String^ nombre, String^ apellido, String^ dni, String^ telefono, String^ direccion, String^ mail, String^ password, String^ rol) {
             c->conectar();
+            String^ sqlDni = "SELECT dni FROM usuarios WHERE dni = ?dni";
+            auto cmdDni = gcnew MySqlCommand(sqlDni, c->con);
+            cmdDni->Parameters->AddWithValue("?dni", dni);
+            auto readerDni = cmdDni->ExecuteReader();
+            if (readerDni->Read()) { MessageBox::Show(L"Ya existe un usuario con ese DNI"); readerDni->Close(); return false; }
+            readerDni->Close();
+
             String^ sqlSelect = "SELECT mail FROM usuarios WHERE mail = ?mail";
             auto cmdSelect = gcnew MySqlCommand(sqlSelect, c->con);
             cmdSelect->Parameters->AddWithValue("?mail", mail);
@@ -164,23 +211,31 @@ namespace Controladores {
             return true;
         }
 
-        bool modificarUsuario(String^ dniOriginal, String^ nombre, String^ apellido, String^ dni, String^ telefono, String^ direccion, String^ mail, String^ rol, String^ password) {
+        bool modificarUsuario(int idUsuario, String^ nombre, String^ apellido, String^ dni, String^ telefono, String^ direccion, String^ mail, String^ rol, String^ password) {
             c->conectar();
-            String^ sqlSelect = "SELECT mail FROM usuarios WHERE mail = ?mail AND dni != ?dniOriginal";
+            String^ sqlDni = "SELECT dni FROM usuarios WHERE dni = ?dni AND id != ?id";
+            auto cmdDni = gcnew MySqlCommand(sqlDni, c->con);
+            cmdDni->Parameters->AddWithValue("?dni", dni);
+            cmdDni->Parameters->AddWithValue("?id", idUsuario);
+            auto readerDni = cmdDni->ExecuteReader();
+            if (readerDni->Read()) { MessageBox::Show(L"Ese DNI ya pertenece a otro usuario"); readerDni->Close(); return false; }
+            readerDni->Close();
+
+            String^ sqlSelect = "SELECT mail FROM usuarios WHERE mail = ?mail AND id != ?id";
             auto cmdSelect = gcnew MySqlCommand(sqlSelect, c->con);
             cmdSelect->Parameters->AddWithValue("?mail", mail);
-            cmdSelect->Parameters->AddWithValue("?dniOriginal", dniOriginal);
+            cmdSelect->Parameters->AddWithValue("?id", idUsuario);
             auto reader = cmdSelect->ExecuteReader();
             if (reader->Read()) { MessageBox::Show(L"Ese mail ya pertenece a otro usuario"); reader->Close(); return false; }
             reader->Close();
 
-            String^ sqlUpdate = "UPDATE usuarios SET nombre=?nombre, apellido=?apellido, dni=?dni, telefono=?telefono, direccion=?direccion, mail=?mail, rol=?rol, password=?password WHERE dni=?dniOriginal";
+            String^ sqlUpdate = "UPDATE usuarios SET nombre=?nombre, apellido=?apellido, dni=?dni, telefono=?telefono, direccion=?direccion, mail=?mail, rol=?rol, password=?password WHERE id=?id";
             auto cmd = gcnew MySqlCommand(sqlUpdate, c->con);
             cmd->Parameters->AddWithValue("?nombre", nombre); cmd->Parameters->AddWithValue("?apellido", apellido);
             cmd->Parameters->AddWithValue("?dni", dni); cmd->Parameters->AddWithValue("?telefono", telefono);
             cmd->Parameters->AddWithValue("?direccion", direccion); cmd->Parameters->AddWithValue("?mail", mail);
             cmd->Parameters->AddWithValue("?rol", rol); cmd->Parameters->AddWithValue("?password", password);
-            cmd->Parameters->AddWithValue("?dniOriginal", dniOriginal);
+            cmd->Parameters->AddWithValue("?id", idUsuario);
             cmd->ExecuteNonQuery();
             MessageBox::Show(L"Usuario modificado exitosamente");
             return true;
@@ -198,7 +253,7 @@ namespace Controladores {
 
         Usuario^ buscarUsuario(String^ dni, int habilitado) {
             c->conectar();
-            String^ sql = "SELECT nombre, apellido, dni, telefono, direccion, mail, rol, password, habilitado FROM usuarios WHERE dni = ?dni AND habilitado = ?habilitado";
+            String^ sql = "SELECT id, nombre, apellido, dni, telefono, direccion, mail, rol, password, habilitado FROM usuarios WHERE dni = ?dni AND habilitado = ?habilitado";
             auto cmd = gcnew MySqlCommand(sql, c->con);
             cmd->Parameters->AddWithValue("?dni", dni);
             cmd->Parameters->AddWithValue("?habilitado", habilitado);
@@ -206,7 +261,7 @@ namespace Controladores {
             Usuario^ u = nullptr;
             if (reader->Read()) {
                 u = gcnew Usuario();
-                u->Nombre = reader["nombre"]->ToString(); u->Apellido = reader["apellido"]->ToString();
+                u->Id = reader["id"]->ToString(); u->Nombre = reader["nombre"]->ToString(); u->Apellido = reader["apellido"]->ToString();
                 u->Dni = reader["dni"]->ToString(); u->Telefono = reader["telefono"]->ToString();
                 u->Direccion = reader["direccion"]->ToString(); u->Mail = reader["mail"]->ToString();
                 u->Rol = reader["rol"]->ToString(); u->Password = reader["password"]->ToString();

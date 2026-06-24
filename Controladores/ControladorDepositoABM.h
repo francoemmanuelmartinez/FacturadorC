@@ -1,5 +1,6 @@
 #pragma once
 #include "..\Models\Producto.h"
+#include "..\Models\Proveedor.h"
 #include "..\Models\Usuario.h"
 #include "..\Servicios\Conexion.h"
 #include "..\Vistas\VentanaPrincipal.h"
@@ -9,6 +10,7 @@
 namespace Controladores {
     ref class ControladorAdmin;
     ref class ControladorLogin;
+    ref class ControladorProveedorABM;
 }
 
 using namespace Models;
@@ -32,8 +34,12 @@ namespace Controladores {
             p->Id = safe_cast<int>(rs["id"]);
             p->Habilitado = safe_cast<int>(rs["habilitado"]);
             p->Descripcion = rs["descripcion"]->ToString();
-            p->Precio = safe_cast<int>(rs["precio"]);
+            p->Precio = Convert::ToDouble(rs["precio"]);
             p->Stock = safe_cast<int>(rs["stock"]);
+            if (rs["id_proveedor"] != DBNull::Value)
+                p->IdProveedor = safe_cast<int>(rs["id_proveedor"]);
+            if (rs["nombreProveedor"] != DBNull::Value)
+                p->NombreProveedor = rs["nombreProveedor"]->ToString();
             return p;
         }
 
@@ -43,13 +49,15 @@ namespace Controladores {
             vista->tableProductos->Columns->Add(L"Descripcion", L"Descripcion");
             vista->tableProductos->Columns->Add(L"Precio", L"Precio");
             vista->tableProductos->Columns->Add(L"Stock", L"Stock");
+            vista->tableProductos->Columns->Add(L"Proveedor", L"Proveedor");
             vista->tableProductos->Columns->Add(L"Habilitado", L"Habilitado");
-            vista->tableProductos->Columns[4]->Visible = false;
+            vista->tableProductos->Columns[5]->Visible = false;
 
             vista->tableProductos->Rows->Clear();
             auto productos = obtenerProductosPorHabilitado(filtroActual);
             for each (Producto^ p in productos) {
-                vista->tableProductos->Rows->Add(p->Id, p->Descripcion, p->Precio, p->Stock, p->Habilitado);
+                vista->tableProductos->Rows->Add(p->Id, p->Descripcion, p->Precio, p->Stock,
+                    p->NombreProveedor != nullptr ? p->NombreProveedor : L"", p->Habilitado);
             }
         }
 
@@ -66,24 +74,36 @@ namespace Controladores {
             if (resultados->Count > 0) {
                 this->vista->tableProductos->Rows->Clear();
                 for each (Producto^ p in resultados) {
-                    this->vista->tableProductos->Rows->Add(p->Id, p->Descripcion, p->Precio, p->Stock, p->Habilitado);
+                    this->vista->tableProductos->Rows->Add(p->Id, p->Descripcion, p->Precio, p->Stock,
+                        p->NombreProveedor != nullptr ? p->NombreProveedor : L"", p->Habilitado);
                 }
             }
         }
 
         void agregarButton_Click(Object^ sender, EventArgs^ e) {
+            auto ctrlProv = gcnew ControladorProveedorABM();
+            auto proveedores = ctrlProv->obtenerProveedoresPorHabilitado(1);
+            auto opciones = gcnew array<String^>(proveedores->Count);
+            for (int i = 0; i < proveedores->Count; i++) {
+                opciones[i] = proveedores[i]->Id + L" - " + proveedores[i]->Nombre;
+            }
             auto valores = VistaFormulario::mostrarDialogo(L"Nuevo Producto",
-                gcnew VistaFormulario::Campo(L"Descripcion:"),
-                gcnew VistaFormulario::Campo(L"Precio:"),
-                gcnew VistaFormulario::Campo(L"Stock:")
+                gcnew VistaFormulario::Campo(L"Descripcion:", L"", L"Alfanumerico", true),
+                gcnew VistaFormulario::Campo(L"Precio:", L"", L"Precio", true),
+                gcnew VistaFormulario::Campo(L"Stock:", L"", L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Proveedor:", opciones, true)
             );
             if (valores != nullptr) {
                 try {
-                    int precio = Int32::Parse(valores[L"Precio:"]);
+                    double precio = Double::Parse(valores[L"Precio:"]);
                     int stock = Int32::Parse(valores[L"Stock:"]);
-                    if (this->agregarProducto(valores[L"Descripcion:"], precio, stock) > -1) this->poblarTabla();
+                    String^ selProv = valores[L"Proveedor:"];
+                    int idProveedor = 0;
+                    if (!String::IsNullOrEmpty(selProv) && selProv->Contains(L" - "))
+                        idProveedor = Int32::Parse(selProv->Split(gcnew array<String^> { L" - " }, StringSplitOptions::None)[0]);
+                    if (this->agregarProducto(valores[L"Descripcion:"], precio, stock, idProveedor) > -1) this->poblarTabla();
                 }
-                catch (FormatException^) { MessageBox::Show(L"Precio y Stock deben ser numeros enteros"); }
+                catch (FormatException^) { MessageBox::Show(L"Precio y Stock deben ser valores numericos validos"); }
             }
         }
 
@@ -91,16 +111,31 @@ namespace Controladores {
             if (this->vista->tableProductos->SelectedRows->Count == 0) { MessageBox::Show(L"Seleccione un producto de la tabla"); return; }
             auto fila = this->vista->tableProductos->SelectedRows[0];
             int idProducto = safe_cast<int>(fila->Cells[0]->Value);
+            auto ctrlProv = gcnew ControladorProveedorABM();
+            auto proveedores = ctrlProv->obtenerProveedoresPorHabilitado(1);
+            auto opciones = gcnew array<String^>(proveedores->Count);
+            String^ valorInicialProveedor = fila->Cells[4]->Value != nullptr ? fila->Cells[4]->Value->ToString() : L"";
+            for (int i = 0; i < proveedores->Count; i++) {
+                opciones[i] = proveedores[i]->Id + L" - " + proveedores[i]->Nombre;
+                if (proveedores[i]->Nombre == valorInicialProveedor)
+                    valorInicialProveedor = opciones[i];
+            }
             auto valores = VistaFormulario::mostrarDialogo(L"Modificar Producto",
-                gcnew VistaFormulario::Campo(L"Descripcion:", fila->Cells[1]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Precio:", fila->Cells[2]->Value->ToString()),
-                gcnew VistaFormulario::Campo(L"Stock:", fila->Cells[3]->Value->ToString())
+                gcnew VistaFormulario::Campo(L"Descripcion:", fila->Cells[1]->Value->ToString(), L"Alfanumerico", true),
+                gcnew VistaFormulario::Campo(L"Precio:", fila->Cells[2]->Value->ToString(), L"Precio", true),
+                gcnew VistaFormulario::Campo(L"Stock:", fila->Cells[3]->Value->ToString(), L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Proveedor:", opciones, valorInicialProveedor, true)
             );
             if (valores != nullptr) {
                 try {
-                    if (this->modificarProducto(idProducto, valores[L"Descripcion:"], Int32::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]))) this->poblarTabla();
+                    String^ selProv = valores[L"Proveedor:"];
+                    int idProveedor = 0;
+                    if (!String::IsNullOrEmpty(selProv) && selProv->Contains(L" - "))
+                        idProveedor = Int32::Parse(selProv->Split(gcnew array<String^> { L" - " }, StringSplitOptions::None)[0]);
+                    if (this->modificarProducto(idProducto, valores[L"Descripcion:"],
+                        Double::Parse(valores[L"Precio:"]), Int32::Parse(valores[L"Stock:"]), idProveedor)) this->poblarTabla();
                 }
-                catch (FormatException^) { MessageBox::Show(L"Precio y Stock deben ser numeros enteros"); }
+                catch (FormatException^) { MessageBox::Show(L"Precio y Stock deben ser valores numericos validos"); }
             }
         }
 
@@ -108,7 +143,7 @@ namespace Controladores {
             if (this->vista->tableProductos->SelectedRows->Count == 0) { MessageBox::Show(L"Seleccione un producto de la tabla"); return; }
             auto fila = this->vista->tableProductos->SelectedRows[0];
             int idProducto = safe_cast<int>(fila->Cells[0]->Value);
-            int habilitadoActual = safe_cast<int>(fila->Cells[4]->Value);
+            int habilitadoActual = safe_cast<int>(fila->Cells[5]->Value);
             String^ nuevoEstado = habilitadoActual == 1 ? L"deshabilitar" : L"habilitar";
             auto result = MessageBox::Show(L"?Esta seguro de " + nuevoEstado + L" el producto \"" + fila->Cells[1]->Value->ToString() + L"\"?",
                 nuevoEstado == L"deshabilitar" ? L"Deshabilitar Producto" : L"Habilitar Producto", MessageBoxButtons::YesNo);
@@ -137,7 +172,7 @@ namespace Controladores {
         List<Producto^>^ obtenerProductosPorHabilitado(int habilitado) {
             auto productos = gcnew List<Producto^>();
             c->conectar();
-            String^ sql = "SELECT id, descripcion, precio, stock, habilitado FROM productos WHERE habilitado = ?habilitado";
+            String^ sql = "SELECT p.id, p.descripcion, p.precio, p.stock, p.habilitado, p.id_proveedor, pr.nombre AS nombreProveedor FROM productos p LEFT JOIN proveedores pr ON p.id_proveedor = pr.id WHERE p.habilitado = ?habilitado";
             auto cmd = gcnew MySqlCommand(sql, c->con);
             cmd->Parameters->AddWithValue("?habilitado", habilitado);
             auto rs = cmd->ExecuteReader();
@@ -150,12 +185,13 @@ namespace Controladores {
             auto productos = gcnew List<Producto^>();
             c->conectar();
             MySqlCommand^ cmd;
+            String^ sqlBase = "SELECT p.id, p.descripcion, p.precio, p.stock, p.habilitado, p.id_proveedor, pr.nombre AS nombreProveedor FROM productos p LEFT JOIN proveedores pr ON p.id_proveedor = pr.id WHERE ";
             if (System::Text::RegularExpressions::Regex::IsMatch(texto, L"\\d+")) {
-                cmd = gcnew MySqlCommand("SELECT id, descripcion, precio, stock, habilitado FROM productos WHERE id = ?id AND habilitado = ?habilitado", c->con);
+                cmd = gcnew MySqlCommand(sqlBase + "p.id = ?id AND p.habilitado = ?habilitado", c->con);
                 cmd->Parameters->AddWithValue("?id", Int32::Parse(texto));
             }
             else {
-                cmd = gcnew MySqlCommand("SELECT id, descripcion, precio, stock, habilitado FROM productos WHERE descripcion LIKE ?desc AND habilitado = ?habilitado", c->con);
+                cmd = gcnew MySqlCommand(sqlBase + "p.descripcion LIKE ?desc AND p.habilitado = ?habilitado", c->con);
                 cmd->Parameters->AddWithValue("?desc", L"%" + texto + L"%");
             }
             cmd->Parameters->AddWithValue("?habilitado", habilitado);
@@ -166,24 +202,26 @@ namespace Controladores {
             return productos;
         }
 
-        int agregarProducto(String^ descripcion, int precio, int stock) {
+        int agregarProducto(String^ descripcion, double precio, int stock, int idProveedor) {
             c->conectar();
-            auto cmd = gcnew MySqlCommand("INSERT INTO productos(descripcion, precio, stock) VALUES(?descripcion, ?precio, ?stock)", c->con);
+            auto cmd = gcnew MySqlCommand("INSERT INTO productos(descripcion, precio, stock, id_proveedor) VALUES(?descripcion, ?precio, ?stock, ?idProveedor)", c->con);
             cmd->Parameters->AddWithValue("?descripcion", descripcion);
             cmd->Parameters->AddWithValue("?precio", precio);
             cmd->Parameters->AddWithValue("?stock", stock);
+            cmd->Parameters->AddWithValue("?idProveedor", idProveedor > 0 ? safe_cast<Object^>(idProveedor) : DBNull::Value);
             cmd->ExecuteNonQuery();
             int id = safe_cast<int>(cmd->LastInsertedId);
             MessageBox::Show(L"Producto agregado exitosamente");
             return id;
         }
 
-        bool modificarProducto(int id, String^ descripcion, int precio, int stock) {
+        bool modificarProducto(int id, String^ descripcion, double precio, int stock, int idProveedor) {
             c->conectar();
-            auto cmd = gcnew MySqlCommand("UPDATE productos SET descripcion=?descripcion, precio=?precio, stock=?stock WHERE id=?id", c->con);
+            auto cmd = gcnew MySqlCommand("UPDATE productos SET descripcion=?descripcion, precio=?precio, stock=?stock, id_proveedor=?idProveedor WHERE id=?id", c->con);
             cmd->Parameters->AddWithValue("?descripcion", descripcion);
             cmd->Parameters->AddWithValue("?precio", precio);
             cmd->Parameters->AddWithValue("?stock", stock);
+            cmd->Parameters->AddWithValue("?idProveedor", idProveedor > 0 ? safe_cast<Object^>(idProveedor) : DBNull::Value);
             cmd->Parameters->AddWithValue("?id", id);
             cmd->ExecuteNonQuery();
             MessageBox::Show(L"Producto modificado exitosamente");

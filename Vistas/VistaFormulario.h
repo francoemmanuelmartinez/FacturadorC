@@ -1,9 +1,14 @@
 #pragma once
+#include "..\Filtros\FiltroNumerico.h"
+#include "..\Filtros\FiltroTexto.h"
+#include "..\Filtros\FiltroAlfanumerico.h"
+#include "..\Filtros\FiltroPrecio.h"
 
 using namespace System;
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
 using namespace System::Collections::Generic;
+using namespace Filtros;
 
 namespace Vistas {
     public ref class VistaFormulario {
@@ -14,13 +19,22 @@ namespace Vistas {
             bool EsPassword;
             array<String^>^ Opciones;
             String^ ValorInicial;
+            String^ TipoFiltro;
+            bool Requerido;
 
-            Campo(String^ etiqueta) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(nullptr) {}
-            Campo(String^ etiqueta, bool esPassword) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(nullptr) {}
-            Campo(String^ etiqueta, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(valorInicial) {}
-            Campo(String^ etiqueta, bool esPassword, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(valorInicial) {}
-            Campo(String^ etiqueta, array<String^>^ opciones) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(nullptr) {}
-            Campo(String^ etiqueta, array<String^>^ opciones, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(valorInicial) {}
+            Campo(String^ etiqueta) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(nullptr), TipoFiltro(nullptr), Requerido(false) {}
+            Campo(String^ etiqueta, bool esPassword) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(nullptr), TipoFiltro(nullptr), Requerido(false) {}
+            Campo(String^ etiqueta, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(valorInicial), TipoFiltro(nullptr), Requerido(false) {}
+            Campo(String^ etiqueta, bool esPassword, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(valorInicial), TipoFiltro(nullptr), Requerido(false) {}
+            Campo(String^ etiqueta, array<String^>^ opciones) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(nullptr), TipoFiltro(nullptr), Requerido(false) {}
+            Campo(String^ etiqueta, array<String^>^ opciones, String^ valorInicial) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(valorInicial), TipoFiltro(nullptr), Requerido(false) {}
+
+            Campo(String^ etiqueta, String^ valorInicial, String^ tipoFiltro) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(valorInicial), TipoFiltro(tipoFiltro), Requerido(false) {}
+            Campo(String^ etiqueta, String^ valorInicial, String^ tipoFiltro, bool requerido) : Etiqueta(etiqueta), EsPassword(false), Opciones(nullptr), ValorInicial(valorInicial), TipoFiltro(tipoFiltro), Requerido(requerido) {}
+            Campo(String^ etiqueta, array<String^>^ opciones, bool requerido) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(nullptr), TipoFiltro(nullptr), Requerido(requerido) {}
+            Campo(String^ etiqueta, array<String^>^ opciones, String^ valorInicial, bool requerido) : Etiqueta(etiqueta), EsPassword(false), Opciones(opciones), ValorInicial(valorInicial), TipoFiltro(nullptr), Requerido(requerido) {}
+            Campo(String^ etiqueta, bool esPassword, bool requerido) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(nullptr), TipoFiltro(nullptr), Requerido(requerido) {}
+            Campo(String^ etiqueta, bool esPassword, String^ valorInicial, bool requerido) : Etiqueta(etiqueta), EsPassword(esPassword), Opciones(nullptr), ValorInicial(valorInicial), TipoFiltro(nullptr), Requerido(requerido) {}
         };
 
         static void MostrarPasswordChanged(Object^ sender, EventArgs^ e) {
@@ -31,10 +45,17 @@ namespace Vistas {
             }
         }
 
+        static void AplicarFiltro(TextBox^ tb, String^ tipoFiltro) {
+            if (tipoFiltro == L"Texto") FiltroTexto::Aplicar(tb);
+            else if (tipoFiltro == L"Numerico") FiltroNumerico::Aplicar(tb);
+            else if (tipoFiltro == L"Alfanumerico") FiltroAlfanumerico::Aplicar(tb);
+            else if (tipoFiltro == L"Precio") FiltroPrecio::Aplicar(tb);
+        }
+
         static Dictionary<String^, String^>^ mostrarDialogo(String^ titulo, ... array<Campo^>^ campos) {
             auto form = gcnew Form();
             form->Text = titulo;
-            form->Size = System::Drawing::Size(350, campos->Length * 35 + 100);
+            form->Size = System::Drawing::Size(350, campos->Length * 35 + 140);
             form->FormBorderStyle = FormBorderStyle::FixedDialog;
             form->StartPosition = FormStartPosition::CenterParent;
             form->MinimizeBox = false;
@@ -47,7 +68,8 @@ namespace Vistas {
                 Campo^ c = campos[i];
 
                 auto lbl = gcnew Label();
-                lbl->Text = c->Etiqueta;
+                lbl->Text = c->Requerido ? c->Etiqueta + L" *" : c->Etiqueta;
+                if (c->Requerido) lbl->ForeColor = Color::Red;
                 lbl->Location = Point(10, 10 + i * 35);
                 lbl->Size = System::Drawing::Size(100, 25);
                 form->Controls->Add(lbl);
@@ -55,6 +77,7 @@ namespace Vistas {
                 if (c->Opciones != nullptr) {
                     auto cb = gcnew ComboBox();
                     cb->Items->AddRange(c->Opciones);
+                    cb->DropDownStyle = ComboBoxStyle::DropDownList;
                     cb->Location = Point(120, 10 + i * 35);
                     cb->Size = System::Drawing::Size(200, 25);
                     if (c->ValorInicial != nullptr) cb->Text = c->ValorInicial;
@@ -76,6 +99,7 @@ namespace Vistas {
                     tf->Size = System::Drawing::Size(200, 25);
                     if (c->ValorInicial != nullptr) tf->Text = c->ValorInicial;
                     form->Controls->Add(tf);
+                    if (c->TipoFiltro != nullptr) AplicarFiltro(tf, c->TipoFiltro);
                 }
             }
 
@@ -89,11 +113,14 @@ namespace Vistas {
                 form->Controls->Add(chk);
             }
 
+            auto azul = Color::LightSkyBlue;
+
             auto btnOk = gcnew Button();
             btnOk->Text = L"Aceptar";
             btnOk->DialogResult = DialogResult::OK;
             btnOk->Location = Point(120, 10 + campos->Length * 35 + (passwordFields->Count > 0 ? 30 : 0));
             btnOk->Size = System::Drawing::Size(90, 30);
+            btnOk->BackColor = Color::LightGreen;
             form->Controls->Add(btnOk);
 
             auto btnCancel = gcnew Button();
@@ -101,7 +128,15 @@ namespace Vistas {
             btnCancel->DialogResult = DialogResult::Cancel;
             btnCancel->Location = Point(220, 10 + campos->Length * 35 + (passwordFields->Count > 0 ? 30 : 0));
             btnCancel->Size = System::Drawing::Size(90, 30);
+            btnCancel->BackColor = Color::LightCoral;
             form->Controls->Add(btnCancel);
+
+            auto lblReq = gcnew Label();
+            lblReq->Text = L"* Campos requeridos";
+            lblReq->ForeColor = Color::Red;
+            lblReq->Location = Point(10, 10 + campos->Length * 35 + (passwordFields->Count > 0 ? 30 : 0) + 35);
+            lblReq->Size = System::Drawing::Size(200, 20);
+            form->Controls->Add(lblReq);
 
             form->AcceptButton = btnOk;
             form->CancelButton = btnCancel;
@@ -109,11 +144,9 @@ namespace Vistas {
             if (form->ShowDialog() != DialogResult::OK) return nullptr;
 
             auto resultado = gcnew Dictionary<String^, String^>();
-            int controlIndex = 0;
             for (int i = 0; i < campos->Length; i++) {
                 Campo^ c = campos[i];
-                int idx = 1 + i; // first control is label, but we access by index
-                auto comp = form->Controls[i * 2 + 1]; // every other control
+                auto comp = form->Controls[i * 2 + 1];
                 if (comp->GetType() == TextBox::typeid) {
                     resultado[c->Etiqueta] = ((TextBox^)comp)->Text->Trim();
                 }

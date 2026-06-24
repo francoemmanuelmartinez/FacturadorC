@@ -9,6 +9,7 @@ namespace Controladores {
     ref class ControladorClienteABM;
     ref class ControladorUsuarioABM;
     ref class ControladorDepositoABM;
+    ref class ControladorProveedorABM;
 }
 
 using namespace Models;
@@ -24,6 +25,7 @@ namespace Controladores {
         void botonClientes_Click(Object^ sender, EventArgs^ e);
         void botonFacturar_Click(Object^ sender, EventArgs^ e);
         void botonDeposito_Click(Object^ sender, EventArgs^ e);
+        void botonProveedores_Click(Object^ sender, EventArgs^ e);
         void cerrarSesion_Click(Object^ sender, EventArgs^ e);
 
     public:
@@ -39,6 +41,7 @@ namespace Controladores {
             vistaAdmin->botonAdministrarClientes->Click += gcnew EventHandler(this, &ControladorAdmin::botonClientes_Click);
             vistaAdmin->botonFacturar->Click += gcnew EventHandler(this, &ControladorAdmin::botonFacturar_Click);
             vistaAdmin->botonAdministrarDeposito->Click += gcnew EventHandler(this, &ControladorAdmin::botonDeposito_Click);
+            vistaAdmin->botonAdministrarProveedores->Click += gcnew EventHandler(this, &ControladorAdmin::botonProveedores_Click);
             vistaAdmin->cerrarSesion->Click += gcnew EventHandler(this, &ControladorAdmin::cerrarSesion_Click);
         }
     };

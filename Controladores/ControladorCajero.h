@@ -11,6 +11,7 @@ namespace Controladores {
     ref class ControladorLogin;
     ref class ControladorClienteABM;
     ref class ControladorDepositoABM;
+    ref class ControladorProveedorABM;
 }
 
 using namespace Models;
@@ -40,13 +41,13 @@ namespace Controladores {
         }
 
         void actualizarTotales(DataGridView^ tabla, TextBox^ txtSubtotal, TextBox^ txtDescuento, TextBox^ txtTotal, TextBox^ txtDescontado) {
-            int subtotal = 0;
+            double subtotal = 0.0;
             for each (DataGridViewRow^ row in tabla->Rows) {
                 if (row->Cells[5]->Value != nullptr) {
-                    subtotal += safe_cast<int>(row->Cells[5]->Value);
+                    subtotal += Convert::ToDouble(row->Cells[5]->Value);
                 }
             }
-            txtSubtotal->Text = subtotal.ToString();
+            txtSubtotal->Text = subtotal.ToString(L"F2");
             txtDescuento->Text = L"";
             txtTotal->Text = L"";
             txtDescontado->Text = L"";
@@ -57,6 +58,7 @@ namespace Controladores {
             vista->textFieldDescripcionProducto->Text = L"";
             vista->textFieldPrecioProducto->Text = L"";
             vista->textFieldStock->Text = L"";
+            vista->textFieldProveedorProducto->Text = L"";
             vista->textFieldCantidadProducto->Text = L"";
             vista->textFieldDescuentoProducto->Text = L"";
         }
@@ -92,8 +94,13 @@ namespace Controladores {
             }
 
             String^ descripcion = this->vista->textFieldDescripcionProducto->Text;
-            int precio = Int32::Parse(this->vista->textFieldPrecioProducto->Text);
-            int cantidad = Int32::Parse(this->vista->textFieldCantidadProducto->Text->Trim());
+            double precio = Double::Parse(this->vista->textFieldPrecioProducto->Text);
+            String^ cantidadStr = this->vista->textFieldCantidadProducto->Text->Trim();
+            if (String::IsNullOrEmpty(cantidadStr)) {
+                MessageBox::Show(L"Debe especificar la cantidad a agregar al carro");
+                return;
+            }
+            int cantidad = Int32::Parse(cantidadStr);
             if (cantidad <= 0) {
                 MessageBox::Show(L"La cantidad debe ser mayor a 0");
                 return;
@@ -101,7 +108,7 @@ namespace Controladores {
 
             String^ descuentoStr = this->vista->textFieldDescuentoProducto->Text->Trim();
             int descuento = String::IsNullOrEmpty(descuentoStr) ? 0 : Int32::Parse(descuentoStr);
-            int subtotal = precio * cantidad * (100 - descuento) / 100;
+            double subtotal = precio * cantidad * (100 - descuento) / 100.0;
 
             this->vista->tableCarrito->Rows->Add(idStr, descripcion, precio, cantidad, descuento + L"%", subtotal);
             this->actualizarTotales(this->vista->tableCarrito, this->vista->textFieldSubtotal, this->vista->textFieldDescuento, this->vista->textFieldTotal, this->vista->textFieldValorDescontado);
@@ -118,8 +125,8 @@ namespace Controladores {
             String^ descuentoActual = fila->Cells[4]->Value->ToString()->Replace(L"%", L"");
 
             auto valores = VistaFormulario::mostrarDialogo(L"Modificar Articulo",
-                gcnew VistaFormulario::Campo(L"Cantidad:", cantidadActual),
-                gcnew VistaFormulario::Campo(L"Descuento %:", descuentoActual)
+                gcnew VistaFormulario::Campo(L"Cantidad:", cantidadActual, L"Numerico", true),
+                gcnew VistaFormulario::Campo(L"Descuento %:", descuentoActual, L"Numerico", true)
             );
             if (valores != nullptr) {
                 try {
@@ -133,8 +140,8 @@ namespace Controladores {
                         MessageBox::Show(L"El descuento debe ser entre 0 y 100");
                         return;
                     }
-                    int precio = safe_cast<int>(fila->Cells[2]->Value);
-                    int nuevoSubtotal = precio * nuevaCantidad * (100 - nuevoDescuento) / 100;
+                    double precio = Convert::ToDouble(fila->Cells[2]->Value);
+                    double nuevoSubtotal = precio * nuevaCantidad * (100 - nuevoDescuento) / 100.0;
                     fila->Cells[3]->Value = nuevaCantidad;
                     fila->Cells[4]->Value = nuevoDescuento + L"%";
                     fila->Cells[5]->Value = nuevoSubtotal;
@@ -164,17 +171,17 @@ namespace Controladores {
                 MessageBox::Show(L"No hay articulos en el carrito");
                 return;
             }
-            int subtotal = Int32::Parse(subtotalStr);
+            double subtotal = Double::Parse(subtotalStr);
             String^ descuentoStr = this->vista->textFieldDescuento->Text->Trim();
             int descuento = String::IsNullOrEmpty(descuentoStr) ? 0 : Int32::Parse(descuentoStr);
             if (descuento < 0 || descuento > 100) {
                 MessageBox::Show(L"El descuento debe ser entre 0 y 100");
                 return;
             }
-            int total = subtotal * (100 - descuento) / 100;
-            int valorDescontado = subtotal - total;
-            this->vista->textFieldTotal->Text = total.ToString();
-            this->vista->textFieldValorDescontado->Text = valorDescontado.ToString();
+            double total = subtotal * (100 - descuento) / 100.0;
+            double valorDescontado = subtotal - total;
+            this->vista->textFieldTotal->Text = total.ToString(L"F2");
+            this->vista->textFieldValorDescontado->Text = valorDescontado.ToString(L"F2");
         }
 
         void finalizarCompraButton_Click(Object^ sender, EventArgs^ e) {
@@ -212,11 +219,11 @@ namespace Controladores {
                 }
             }
 
-            int subtotalVal = Int32::Parse(this->vista->textFieldSubtotal->Text->Trim());
+            double subtotalVal = Double::Parse(this->vista->textFieldSubtotal->Text->Trim());
             String^ descuentoStrVal = this->vista->textFieldDescuento->Text->Trim();
             int descuentoPorcentaje = String::IsNullOrEmpty(descuentoStrVal) ? 0 : Int32::Parse(descuentoStrVal);
-            int totalVal = Int32::Parse(this->vista->textFieldTotal->Text->Trim());
-            int valorDescontadoVal = subtotalVal - totalVal;
+            double totalVal = Double::Parse(this->vista->textFieldTotal->Text->Trim());
+            double valorDescontadoVal = subtotalVal - totalVal;
 
             auto cc = gcnew ControladorCajero();
             if (cc->finalizarCompra(idCliente, nombreCliente, apellidoCliente, idVendedor, nombreVendedor, apellidoVendedor, carrito, subtotalVal, descuentoPorcentaje, valorDescontadoVal, totalVal)) {
@@ -273,8 +280,8 @@ namespace Controladores {
 
         bool finalizarCompra(int idCliente, String^ nombreCliente, String^ apellidoCliente,
             int idVendedor, String^ nombreVendedor, String^ apellidoVendedor,
-            List<array<Object^>^>^ carrito, int subtotal, int descuentoPorcentaje,
-            int valorDescontado, int totalCompra) {
+            List<array<Object^>^>^ carrito, double subtotal, int descuentoPorcentaje,
+            double valorDescontado, double totalCompra) {
             try {
                 c->conectar();
                 auto transaction = c->con->BeginTransaction();
@@ -308,12 +315,12 @@ namespace Controladores {
                 for each (array<Object^>^ fila in carrito) {
                     int idProducto = Int32::Parse(fila[0]->ToString());
                     int cantidad = safe_cast<int>(fila[3]);
-                    int precioUnitario = safe_cast<int>(fila[2]);
+                    double precioUnitario = Convert::ToDouble(fila[2]);
                     int descuento = 0;
                     if (fila[4]->ToString()->Contains(L"%")) {
                         descuento = Int32::Parse(fila[4]->ToString()->Replace(L"%", L""));
                     }
-                    int subtotalDetalle = safe_cast<int>(fila[5]);
+                    double subtotalDetalle = Convert::ToDouble(fila[5]);
 
                     cmdDetalle->Parameters->Clear();
                     cmdDetalle->Parameters->AddWithValue("?idf", idFactura);

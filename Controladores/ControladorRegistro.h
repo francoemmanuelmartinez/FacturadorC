@@ -2,6 +2,8 @@
 #include "..\Servicios\Conexion.h"
 #include "..\Vistas\VentanaPrincipal.h"
 #include "..\Vistas\VistaRegistro.h"
+#include "..\Filtros\ValidadorCampos.h"
+#include "..\Filtros\ValidadorMail.h"
 
 namespace Controladores { ref class ControladorLogin; }
 
@@ -21,9 +23,9 @@ namespace Controladores {
         void botonVolver_Click(Object^ sender, EventArgs^ e);
 
     public:
-        ControladorRegistro() : c(gcnew Conexion()), sqlInsert(L"INSERT INTO usuarios(nombre, apellido, dni, telefono, direccion, mail, rol, password) VALUES(?nombre, ?apellido, ?dni, ?telefono, ?direccion, ?mail, 3, ?password)") {}
+        ControladorRegistro() : c(gcnew Conexion()), sqlInsert(L"INSERT INTO usuarios(nombre, apellido, dni, telefono, direccion, mail, rol, password) VALUES(?nombre, ?apellido, ?dni, ?telefono, ?direccion, ?mail, ?rol, ?password)") {}
 
-        ControladorRegistro(VentanaPrincipal^ ventanaPrincipal) : c(gcnew Conexion()), sqlInsert(L"INSERT INTO usuarios(nombre, apellido, dni, telefono, direccion, mail, rol, password) VALUES(?nombre, ?apellido, ?dni, ?telefono, ?direccion, ?mail, 3, ?password)") {
+        ControladorRegistro(VentanaPrincipal^ ventanaPrincipal) : c(gcnew Conexion()), sqlInsert(L"INSERT INTO usuarios(nombre, apellido, dni, telefono, direccion, mail, rol, password) VALUES(?nombre, ?apellido, ?dni, ?telefono, ?direccion, ?mail, ?rol, ?password)") {
             this->ventanaPrincipal = ventanaPrincipal;
             vistaRegistro = gcnew VistaRegistro();
             ventanaPrincipal->setVista(vistaRegistro->panelRegistro);
@@ -54,6 +56,7 @@ namespace Controladores {
                 cmd->Parameters->AddWithValue("?telefono", telefono);
                 cmd->Parameters->AddWithValue("?direccion", direccion);
                 cmd->Parameters->AddWithValue("?mail", mail);
+                cmd->Parameters->AddWithValue("?rol", L"Ninguno");
                 cmd->Parameters->AddWithValue("?password", password);
                 cmd->ExecuteNonQuery();
                 MessageBox::Show(L"Registro exitoso");

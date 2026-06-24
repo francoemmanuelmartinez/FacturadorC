@@ -1,7 +1,11 @@
 #pragma once
+#include "..\Filtros\FiltroPrecio.h"
+#include "..\Filtros\FiltroNumerico.h"
+#include "..\Filtros\FiltroAlfanumerico.h"
 
 using namespace System::Drawing;
 using namespace System::Windows::Forms;
+using namespace Filtros;
 
 namespace Vistas {
     public ref class VistaCajero {
@@ -30,6 +34,7 @@ namespace Vistas {
         TextBox^ textFieldCantidadProducto;
         TextBox^ textFieldDescuentoProducto;
         TextBox^ textFieldStock;
+        TextBox^ textFieldProveedorProducto;
         TextBox^ textFieldSubtotal;
         TextBox^ textFieldDescuento;
         TextBox^ textFieldTotal;
@@ -46,115 +51,105 @@ namespace Vistas {
         Button^ volverButton;
 
         VistaCajero() {
-            panelCajero = gcnew Panel();
-            panelCajero->Size = System::Drawing::Size(800, 600);
+            auto azul = Color::LightSkyBlue;
 
-            // Cajero info
+            panelCajero = gcnew Panel();
+            panelCajero->Size = System::Drawing::Size(800, 630);
+
+            // ========= Header Row =========
             auto lblCajero = gcnew Label();
             lblCajero->Text = L"Cajero:";
-            lblCajero->Location = Point(10, 10);
-            lblCajero->Size = System::Drawing::Size(50, 20);
+            lblCajero->Location = Point(10, 8);
+            lblCajero->Size = System::Drawing::Size(55, 22);
+            lblCajero->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblCajero);
 
             textFieldNombreCajero = gcnew TextBox();
-            textFieldNombreCajero->Location = Point(60, 10);
-            textFieldNombreCajero->Size = System::Drawing::Size(140, 20);
             textFieldNombreCajero->ReadOnly = true;
+            textFieldNombreCajero->Location = Point(68, 8);
+            textFieldNombreCajero->Size = System::Drawing::Size(140, 22);
             panelCajero->Controls->Add(textFieldNombreCajero);
 
+            auto lblApellido = gcnew Label();
+            lblApellido->Text = L"Apellido:";
+            lblApellido->Location = Point(212, 8);
+            lblApellido->Size = System::Drawing::Size(60, 22);
+            lblApellido->TextAlign = ContentAlignment::MiddleLeft;
+            panelCajero->Controls->Add(lblApellido);
+
             textFieldApellidoCajero = gcnew TextBox();
-            textFieldApellidoCajero->Location = Point(205, 10);
-            textFieldApellidoCajero->Size = System::Drawing::Size(140, 20);
             textFieldApellidoCajero->ReadOnly = true;
+            textFieldApellidoCajero->Location = Point(275, 8);
+            textFieldApellidoCajero->Size = System::Drawing::Size(140, 22);
             panelCajero->Controls->Add(textFieldApellidoCajero);
 
             auto lblIDCajero = gcnew Label();
             lblIDCajero->Text = L"ID:";
-            lblIDCajero->Location = Point(350, 10);
-            lblIDCajero->Size = System::Drawing::Size(30, 20);
+            lblIDCajero->Location = Point(420, 8);
+            lblIDCajero->Size = System::Drawing::Size(25, 22);
+            lblIDCajero->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblIDCajero);
 
             textFieldIDCajero = gcnew TextBox();
-            textFieldIDCajero->Location = Point(380, 10);
-            textFieldIDCajero->Size = System::Drawing::Size(90, 20);
             textFieldIDCajero->ReadOnly = true;
+            textFieldIDCajero->Location = Point(448, 8);
+            textFieldIDCajero->Size = System::Drawing::Size(250, 22);
             panelCajero->Controls->Add(textFieldIDCajero);
 
             volverButton = gcnew Button();
             volverButton->Text = L"Volver";
-            volverButton->Location = Point(690, 8);
+            volverButton->Location = Point(710, 6);
             volverButton->Size = System::Drawing::Size(80, 25);
+            volverButton->BackColor = Color::Gainsboro;
             panelCajero->Controls->Add(volverButton);
 
-            // --- Client Section ---
+            // ========= Client GroupBox =========
             auto groupCliente = gcnew GroupBox();
-            groupCliente->Text = L"Cliente";
+            groupCliente->Text = L"CLIENTE";
+            groupCliente->Font = gcnew System::Drawing::Font(L"Arial", 9, FontStyle::Bold);
             groupCliente->Location = Point(10, 40);
-            groupCliente->Size = System::Drawing::Size(370, 180);
+            groupCliente->Size = System::Drawing::Size(385, 240);
             panelCajero->Controls->Add(groupCliente);
 
             auto lblBuscarCliente = gcnew Label();
-            lblBuscarCliente->Text = L"Buscar DNI:";
-            lblBuscarCliente->Location = Point(10, 20);
-            lblBuscarCliente->Size = System::Drawing::Size(70, 20);
+            lblBuscarCliente->Text = L"DNI Cliente:";
+            lblBuscarCliente->Location = Point(10, 22);
+            lblBuscarCliente->Size = System::Drawing::Size(72, 18);
+            lblBuscarCliente->TextAlign = ContentAlignment::MiddleLeft;
             groupCliente->Controls->Add(lblBuscarCliente);
 
             textFieldBuscarCliente = gcnew TextBox();
-            textFieldBuscarCliente->Location = Point(85, 20);
-            textFieldBuscarCliente->Size = System::Drawing::Size(100, 20);
+            textFieldBuscarCliente->Location = Point(84, 22);
+            textFieldBuscarCliente->Size = System::Drawing::Size(215, 18);
             groupCliente->Controls->Add(textFieldBuscarCliente);
 
             buscarClienteButton = gcnew Button();
             buscarClienteButton->Text = L"Buscar";
-            buscarClienteButton->Location = Point(190, 18);
-            buscarClienteButton->Size = System::Drawing::Size(70, 23);
+            buscarClienteButton->Location = Point(303, 20);
+            buscarClienteButton->Size = System::Drawing::Size(72, 22);
+            buscarClienteButton->BackColor = azul;
             groupCliente->Controls->Add(buscarClienteButton);
 
-            nuevoClienteButton = gcnew Button();
-            nuevoClienteButton->Text = L"Nuevo";
-            nuevoClienteButton->Location = Point(265, 18);
-            nuevoClienteButton->Size = System::Drawing::Size(70, 23);
-            groupCliente->Controls->Add(nuevoClienteButton);
-
-            array<String^>^ clLbls = { L"ID:", L"Nombre:", L"Apellido:", L"DNI:", L"Direccion:", L"Telefono:", L"Mail:" };
+            // Client fields (7 rows)
+            array<String^>^ clLbls = { L"ID:", L"Nombre:", L"Apellido:", L"DNI:", L"Domicilio:", L"Telefono:", L"Mail:" };
             array<TextBox^>^ clTbs = gcnew array<TextBox^>(7);
-            int clY = 50;
-            for (int i = 0; i < 3; i++) {
+            int clY = 48;
+            for (int r = 0; r < 7; r++) {
                 auto lbl = gcnew Label();
-                lbl->Text = clLbls[i];
-                lbl->Location = Point(10, clY);
-                lbl->Size = System::Drawing::Size(60, 20);
+                lbl->Text = clLbls[r];
+                lbl->Location = Point(12, clY);
+                lbl->Size = System::Drawing::Size(65, 16);
+                lbl->TextAlign = ContentAlignment::MiddleLeft;
                 groupCliente->Controls->Add(lbl);
 
-                clTbs[i] = gcnew TextBox();
-                clTbs[i]->Location = Point(70, clY);
-                clTbs[i]->Size = System::Drawing::Size(100, 20);
-                groupCliente->Controls->Add(clTbs[i]);
+                clTbs[r] = gcnew TextBox();
+                clTbs[r]->ReadOnly = true;
+                clTbs[r]->Location = Point(80, clY);
+                clTbs[r]->Size = System::Drawing::Size(295, 16);
+                groupCliente->Controls->Add(clTbs[r]);
 
-                auto lbl2 = gcnew Label();
-                lbl2->Text = clLbls[i + 3];
-                lbl2->Location = Point(175, clY);
-                lbl2->Size = System::Drawing::Size(60, 20);
-                groupCliente->Controls->Add(lbl2);
-
-                clTbs[i + 3] = gcnew TextBox();
-                clTbs[i + 3]->Location = Point(235, clY);
-                clTbs[i + 3]->Size = System::Drawing::Size(120, 20);
-                groupCliente->Controls->Add(clTbs[i + 3]);
-                clY += 25;
+                clY += 22;
             }
-
-            auto lblMail = gcnew Label();
-            lblMail->Text = L"Mail:";
-            lblMail->Location = Point(10, clY);
-            lblMail->Size = System::Drawing::Size(60, 20);
-            groupCliente->Controls->Add(lblMail);
-
-            clTbs[6] = gcnew TextBox();
-            clTbs[6]->Location = Point(70, clY);
-            clTbs[6]->Size = System::Drawing::Size(200, 20);
-            groupCliente->Controls->Add(clTbs[6]);
-
             textFieldIDCliente = clTbs[0];
             textFieldNombreCliente = clTbs[1];
             textFieldApellidoCliente = clTbs[2];
@@ -164,101 +159,106 @@ namespace Vistas {
             textFieldMailCliente = clTbs[6];
 
             modificarClienteButton = gcnew Button();
-            modificarClienteButton->Text = L"Modificar Cliente";
-            modificarClienteButton->Location = Point(10, clY + 25);
-            modificarClienteButton->Size = System::Drawing::Size(120, 23);
+            modificarClienteButton->Text = L"Modificar";
+            modificarClienteButton->Location = Point(10, 210);
+            modificarClienteButton->Size = System::Drawing::Size(180, 22);
+            modificarClienteButton->BackColor = azul;
             groupCliente->Controls->Add(modificarClienteButton);
 
-            // --- Product Section ---
+            nuevoClienteButton = gcnew Button();
+            nuevoClienteButton->Text = L"Nuevo";
+            nuevoClienteButton->Location = Point(195, 210);
+            nuevoClienteButton->Size = System::Drawing::Size(180, 22);
+            nuevoClienteButton->BackColor = azul;
+            groupCliente->Controls->Add(nuevoClienteButton);
+
+            // ========= Product GroupBox =========
             auto groupProducto = gcnew GroupBox();
-            groupProducto->Text = L"Producto";
-            groupProducto->Location = Point(390, 40);
-            groupProducto->Size = System::Drawing::Size(380, 180);
+            groupProducto->Text = L"PRODUCTO";
+            groupProducto->Font = gcnew System::Drawing::Font(L"Arial", 9, FontStyle::Bold);
+            groupProducto->Location = Point(398, 40);
+            groupProducto->Size = System::Drawing::Size(385, 240);
             panelCajero->Controls->Add(groupProducto);
 
             auto lblBuscarProd = gcnew Label();
-            lblBuscarProd->Text = L"Buscar:";
-            lblBuscarProd->Location = Point(10, 20);
-            lblBuscarProd->Size = System::Drawing::Size(50, 20);
+            lblBuscarProd->Text = L"ID o Descripcion:";
+            lblBuscarProd->Location = Point(10, 22);
+            lblBuscarProd->Size = System::Drawing::Size(120, 18);
+            lblBuscarProd->TextAlign = ContentAlignment::MiddleLeft;
             groupProducto->Controls->Add(lblBuscarProd);
 
             textFieldBuscarProducto = gcnew TextBox();
-            textFieldBuscarProducto->Location = Point(60, 20);
-            textFieldBuscarProducto->Size = System::Drawing::Size(100, 20);
+            textFieldBuscarProducto->Location = Point(134, 22);
+            textFieldBuscarProducto->Size = System::Drawing::Size(165, 18);
             groupProducto->Controls->Add(textFieldBuscarProducto);
 
             buscarProductoButton = gcnew Button();
             buscarProductoButton->Text = L"Buscar";
-            buscarProductoButton->Location = Point(165, 18);
-            buscarProductoButton->Size = System::Drawing::Size(70, 23);
+            buscarProductoButton->Location = Point(303, 20);
+            buscarProductoButton->Size = System::Drawing::Size(72, 22);
+            buscarProductoButton->BackColor = azul;
             groupProducto->Controls->Add(buscarProductoButton);
 
-            nuevoProductoButton = gcnew Button();
-            nuevoProductoButton->Text = L"Nuevo";
-            nuevoProductoButton->Location = Point(240, 18);
-            nuevoProductoButton->Size = System::Drawing::Size(70, 23);
-            groupProducto->Controls->Add(nuevoProductoButton);
-
-            array<String^>^ prLbls = { L"ID:", L"Descripcion:", L"Precio:", L"Stock:" };
-            array<TextBox^>^ prTbs = gcnew array<TextBox^>(4);
-            int prY = 50;
-            for (int i = 0; i < 4; i++) {
+            // Product fields (7 rows)
+            array<String^>^ prLbls = { L"ID:", L"Descripcion:", L"Precio:", L"Stock:", L"Proveedor:", L"Cantidad:", L"Descuento:" };
+            array<TextBox^>^ prTbs = gcnew array<TextBox^>(7);
+            int prY = 48;
+            for (int r = 0; r < 7; r++) {
                 auto lbl = gcnew Label();
-                lbl->Text = prLbls[i];
-                lbl->Location = Point(10, prY);
-                lbl->Size = System::Drawing::Size(70, 20);
+                lbl->Text = prLbls[r];
+                lbl->Location = Point(12, prY);
+                lbl->Size = System::Drawing::Size(85, 16);
+                lbl->TextAlign = ContentAlignment::MiddleLeft;
                 groupProducto->Controls->Add(lbl);
 
-                prTbs[i] = gcnew TextBox();
-                prTbs[i]->Location = Point(85, prY);
-                prTbs[i]->Size = System::Drawing::Size(100, 20);
-                groupProducto->Controls->Add(prTbs[i]);
-                prY += 25;
-            }
+                prTbs[r] = gcnew TextBox();
+                if (r < 5) prTbs[r]->ReadOnly = true;
+                prTbs[r]->Location = Point(100, prY);
+                prTbs[r]->Size = System::Drawing::Size(275, 16);
+                groupProducto->Controls->Add(prTbs[r]);
 
+                prY += 22;
+            }
             textFieldIDProducto = prTbs[0];
             textFieldDescripcionProducto = prTbs[1];
             textFieldPrecioProducto = prTbs[2];
+            FiltroPrecio::Aplicar(textFieldPrecioProducto);
             textFieldStock = prTbs[3];
-
-            auto lblCant = gcnew Label();
-            lblCant->Text = L"Cantidad:";
-            lblCant->Location = Point(200, 50);
-            lblCant->Size = System::Drawing::Size(60, 20);
-            groupProducto->Controls->Add(lblCant);
-
-            textFieldCantidadProducto = gcnew TextBox();
-            textFieldCantidadProducto->Location = Point(260, 50);
-            textFieldCantidadProducto->Size = System::Drawing::Size(80, 20);
-            groupProducto->Controls->Add(textFieldCantidadProducto);
-
-            auto lblDesc = gcnew Label();
-            lblDesc->Text = L"Descuento%:";
-            lblDesc->Location = Point(200, 75);
-            lblDesc->Size = System::Drawing::Size(70, 20);
-            groupProducto->Controls->Add(lblDesc);
-
-            textFieldDescuentoProducto = gcnew TextBox();
-            textFieldDescuentoProducto->Location = Point(270, 75);
-            textFieldDescuentoProducto->Size = System::Drawing::Size(70, 20);
-            groupProducto->Controls->Add(textFieldDescuentoProducto);
+            textFieldProveedorProducto = prTbs[4];
+            textFieldCantidadProducto = prTbs[5];
+            textFieldDescuentoProducto = prTbs[6];
 
             modificarProductoButton = gcnew Button();
-            modificarProductoButton->Text = L"Modificar Producto";
-            modificarProductoButton->Location = Point(10, prY + 5);
-            modificarProductoButton->Size = System::Drawing::Size(120, 23);
+            modificarProductoButton->Text = L"Modificar";
+            modificarProductoButton->Location = Point(10, 210);
+            modificarProductoButton->Size = System::Drawing::Size(115, 22);
+            modificarProductoButton->BackColor = azul;
             groupProducto->Controls->Add(modificarProductoButton);
 
             agregarAlCarroButton = gcnew Button();
-            agregarAlCarroButton->Text = L"Agregar al carrito >>";
-            agregarAlCarroButton->Location = Point(210, prY + 5);
-            agregarAlCarroButton->Size = System::Drawing::Size(140, 23);
+            agregarAlCarroButton->Text = L"Agregar al Carro";
+            agregarAlCarroButton->Location = Point(135, 210);
+            agregarAlCarroButton->Size = System::Drawing::Size(115, 22);
+            agregarAlCarroButton->BackColor = Color::FromArgb(255, 200, 100);
             groupProducto->Controls->Add(agregarAlCarroButton);
 
-            // --- Cart Table ---
+            nuevoProductoButton = gcnew Button();
+            nuevoProductoButton->Text = L"Nuevo";
+            nuevoProductoButton->Location = Point(260, 210);
+            nuevoProductoButton->Size = System::Drawing::Size(115, 22);
+            nuevoProductoButton->BackColor = azul;
+            groupProducto->Controls->Add(nuevoProductoButton);
+
+            // Filters
+            FiltroNumerico::Aplicar(textFieldBuscarCliente);
+            FiltroAlfanumerico::Aplicar(textFieldBuscarProducto);
+            FiltroNumerico::Aplicar(textFieldCantidadProducto);
+            FiltroNumerico::Aplicar(textFieldDescuentoProducto);
+
+            // ========= Carrito DataGridView =========
             tableCarrito = gcnew DataGridView();
-            tableCarrito->Location = Point(10, 220);
-            tableCarrito->Size = System::Drawing::Size(760, 200);
+            tableCarrito->Location = Point(10, 290);
+            tableCarrito->Size = System::Drawing::Size(760, 185);
             tableCarrito->AllowUserToAddRows = false;
             tableCarrito->AllowUserToDeleteRows = false;
             tableCarrito->ReadOnly = true;
@@ -266,87 +266,97 @@ namespace Vistas {
             tableCarrito->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::Fill;
             panelCajero->Controls->Add(tableCarrito);
 
-            // --- Cart Action Buttons ---
+            // ========= Carrito Action Buttons =========
             modificarArticuloButton = gcnew Button();
             modificarArticuloButton->Text = L"Modificar Articulo";
-            modificarArticuloButton->Location = Point(10, 430);
-            modificarArticuloButton->Size = System::Drawing::Size(110, 25);
+            modificarArticuloButton->Location = Point(10, 483);
+            modificarArticuloButton->Size = System::Drawing::Size(180, 25);
+            modificarArticuloButton->BackColor = azul;
             panelCajero->Controls->Add(modificarArticuloButton);
 
             eliminarArticuloButton = gcnew Button();
             eliminarArticuloButton->Text = L"Eliminar Articulo";
-            eliminarArticuloButton->Location = Point(125, 430);
-            eliminarArticuloButton->Size = System::Drawing::Size(110, 25);
+            eliminarArticuloButton->Location = Point(200, 483);
+            eliminarArticuloButton->Size = System::Drawing::Size(180, 25);
+            eliminarArticuloButton->BackColor = azul;
             panelCajero->Controls->Add(eliminarArticuloButton);
 
-            // --- Totals ---
+            calcularTotalButton = gcnew Button();
+            calcularTotalButton->Text = L"Calcular Total";
+            calcularTotalButton->Location = Point(600, 483);
+            calcularTotalButton->Size = System::Drawing::Size(160, 25);
+            calcularTotalButton->BackColor = Color::FromArgb(255, 200, 100);
+            panelCajero->Controls->Add(calcularTotalButton);
+
+            // ========= Totals Section =========
             auto lblSubtotal = gcnew Label();
             lblSubtotal->Text = L"Subtotal:";
-            lblSubtotal->Location = Point(10, 470);
-            lblSubtotal->Size = System::Drawing::Size(60, 20);
+            lblSubtotal->Location = Point(390, 517);
+            lblSubtotal->Size = System::Drawing::Size(70, 22);
+            lblSubtotal->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblSubtotal);
 
             textFieldSubtotal = gcnew TextBox();
-            textFieldSubtotal->Location = Point(70, 470);
-            textFieldSubtotal->Size = System::Drawing::Size(100, 20);
             textFieldSubtotal->ReadOnly = true;
+            textFieldSubtotal->Location = Point(464, 517);
+            textFieldSubtotal->Size = System::Drawing::Size(100, 22);
             panelCajero->Controls->Add(textFieldSubtotal);
 
             auto lblDescGlobal = gcnew Label();
             lblDescGlobal->Text = L"Descuento %:";
-            lblDescGlobal->Location = Point(180, 470);
-            lblDescGlobal->Size = System::Drawing::Size(80, 20);
+            lblDescGlobal->Location = Point(570, 517);
+            lblDescGlobal->Size = System::Drawing::Size(90, 22);
+            lblDescGlobal->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblDescGlobal);
 
             textFieldDescuento = gcnew TextBox();
-            textFieldDescuento->Location = Point(260, 470);
-            textFieldDescuento->Size = System::Drawing::Size(60, 20);
+            textFieldDescuento->Location = Point(664, 517);
+            textFieldDescuento->Size = System::Drawing::Size(100, 22);
             panelCajero->Controls->Add(textFieldDescuento);
+            FiltroNumerico::Aplicar(textFieldDescuento);
 
             auto lblDescontado = gcnew Label();
             lblDescontado->Text = L"Descontado:";
-            lblDescontado->Location = Point(330, 470);
-            lblDescontado->Size = System::Drawing::Size(70, 20);
+            lblDescontado->Location = Point(390, 545);
+            lblDescontado->Size = System::Drawing::Size(70, 22);
+            lblDescontado->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblDescontado);
 
             textFieldValorDescontado = gcnew TextBox();
-            textFieldValorDescontado->Location = Point(400, 470);
-            textFieldValorDescontado->Size = System::Drawing::Size(70, 20);
             textFieldValorDescontado->ReadOnly = true;
+            textFieldValorDescontado->Location = Point(464, 545);
+            textFieldValorDescontado->Size = System::Drawing::Size(100, 22);
             panelCajero->Controls->Add(textFieldValorDescontado);
 
             auto lblTotal = gcnew Label();
             lblTotal->Text = L"Total:";
-            lblTotal->Location = Point(480, 470);
-            lblTotal->Size = System::Drawing::Size(50, 20);
+            lblTotal->Font = gcnew System::Drawing::Font(lblTotal->Font, FontStyle::Bold);
+            lblTotal->Location = Point(570, 545);
+            lblTotal->Size = System::Drawing::Size(60, 22);
+            lblTotal->TextAlign = ContentAlignment::MiddleLeft;
             panelCajero->Controls->Add(lblTotal);
 
             textFieldTotal = gcnew TextBox();
-            textFieldTotal->Location = Point(530, 470);
-            textFieldTotal->Size = System::Drawing::Size(100, 20);
             textFieldTotal->ReadOnly = true;
+            textFieldTotal->Font = gcnew System::Drawing::Font(textFieldTotal->Font, FontStyle::Bold);
+            textFieldTotal->Location = Point(634, 545);
+            textFieldTotal->Size = System::Drawing::Size(130, 22);
             panelCajero->Controls->Add(textFieldTotal);
 
-            calcularTotalButton = gcnew Button();
-            calcularTotalButton->Text = L"Calcular Total";
-            calcularTotalButton->Location = Point(640, 468);
-            calcularTotalButton->Size = System::Drawing::Size(100, 25);
-            panelCajero->Controls->Add(calcularTotalButton);
-
-            // --- Final Action Buttons ---
-            finalizarCompraButton = gcnew Button();
-            finalizarCompraButton->Text = L"Finalizar Compra";
-            finalizarCompraButton->Location = Point(10, 510);
-            finalizarCompraButton->Size = System::Drawing::Size(130, 35);
-            finalizarCompraButton->BackColor = Color::LightGreen;
-            panelCajero->Controls->Add(finalizarCompraButton);
-
+            // ========= Bottom Buttons =========
             cancelarCompraButton = gcnew Button();
             cancelarCompraButton->Text = L"Cancelar Compra";
-            cancelarCompraButton->Location = Point(150, 510);
-            cancelarCompraButton->Size = System::Drawing::Size(130, 35);
+            cancelarCompraButton->Location = Point(15, 580);
+            cancelarCompraButton->Size = System::Drawing::Size(240, 28);
             cancelarCompraButton->BackColor = Color::LightCoral;
             panelCajero->Controls->Add(cancelarCompraButton);
+
+            finalizarCompraButton = gcnew Button();
+            finalizarCompraButton->Text = L"Finalizar Compra";
+            finalizarCompraButton->Location = Point(530, 580);
+            finalizarCompraButton->Size = System::Drawing::Size(240, 28);
+            finalizarCompraButton->BackColor = Color::LightGreen;
+            panelCajero->Controls->Add(finalizarCompraButton);
         }
     };
 }

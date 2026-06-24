@@ -11,13 +11,17 @@ namespace Models {
         property String^ NumeroFactura;
         property int IdCliente;
         property String^ NombreCliente;
+        property String^ ApellidoCliente;
+        property String^ DniCliente;
+        property String^ DireccionCliente;
         property int IdVendedor;
         property String^ NombreVendedor;
+        property String^ ApellidoVendedor;
         property DateTime FechaEmision;
-        property int Subtotal;
+        property double Subtotal;
         property int DescuentoPorcentaje;
-        property int ValorDescontado;
-        property int TotalCompra;
+        property double ValorDescontado;
+        property double TotalCompra;
         property List<DetalleFactura^>^ Detalles;
     };
 }

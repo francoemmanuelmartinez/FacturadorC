@@ -26,94 +26,184 @@ namespace Vistas {
         Button^ volverButton;
 
         VistaDetallesFactura() {
+            auto azul = Color::LightSkyBlue;
+
             panelDetallesFactura = gcnew Panel();
             panelDetallesFactura->Size = System::Drawing::Size(800, 600);
 
+            // Volver button top-right
+            volverButton = gcnew Button();
+            volverButton->Text = L"Volver";
+            volverButton->Location = Point(680, 10);
+            volverButton->Size = System::Drawing::Size(100, 28);
+            volverButton->BackColor = Color::Gainsboro;
+            panelDetallesFactura->Controls->Add(volverButton);
+
+            // FACTURA title centered
             labelTitulo = gcnew Label();
-            labelTitulo->Text = L"Detalles de Factura";
-            labelTitulo->Font = gcnew System::Drawing::Font(L"Arial", 14);
-            labelTitulo->Location = Point(250, 10);
-            labelTitulo->Size = System::Drawing::Size(300, 30);
+            labelTitulo->Text = L"FACTURA";
+            labelTitulo->Font = gcnew System::Drawing::Font(L"Arial", 18, FontStyle::Bold);
+            labelTitulo->Location = Point(200, 40);
+            labelTitulo->Size = System::Drawing::Size(400, 35);
+            labelTitulo->TextAlign = ContentAlignment::MiddleCenter;
             panelDetallesFactura->Controls->Add(labelTitulo);
 
-            array<String^>^ lbls = { L"Nro Factura:", L"Fecha:", L"Cliente:", L"Apellido:", L"DNI:", L"Direccion:", L"Vendedor:", L"Apellido V:", L"ID Cliente:", L"ID Vendedor:" };
-            array<TextBox^>^ tbs = gcnew array<TextBox^>(10);
-            int y = 50;
-            for (int i = 0; i < 5; i++) {
-                auto lbl1 = gcnew Label();
-                lbl1->Text = lbls[i];
-                lbl1->Location = Point(20, y);
-                lbl1->Size = System::Drawing::Size(80, 20);
-                panelDetallesFactura->Controls->Add(lbl1);
+            // N° Factura + Fecha row
+            auto lblNroFactura = gcnew Label();
+            lblNroFactura->Text = L"N" + (char)0xba + L" Factura:";
+            lblNroFactura->Location = Point(50, 85);
+            lblNroFactura->Size = System::Drawing::Size(90, 24);
+            lblNroFactura->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblNroFactura);
 
-                tbs[i] = gcnew TextBox();
-                tbs[i]->Location = Point(100, y);
-                tbs[i]->Size = System::Drawing::Size(120, 20);
-                tbs[i]->ReadOnly = true;
-                panelDetallesFactura->Controls->Add(tbs[i]);
+            textFieldNumeroFactura = gcnew TextBox();
+            textFieldNumeroFactura->ReadOnly = true;
+            textFieldNumeroFactura->Location = Point(145, 85);
+            textFieldNumeroFactura->Size = System::Drawing::Size(200, 24);
+            panelDetallesFactura->Controls->Add(textFieldNumeroFactura);
 
-                auto lbl2 = gcnew Label();
-                lbl2->Text = lbls[i + 5];
-                lbl2->Location = Point(240, y);
-                lbl2->Size = System::Drawing::Size(80, 20);
-                panelDetallesFactura->Controls->Add(lbl2);
+            auto lblFecha = gcnew Label();
+            lblFecha->Text = L"Fecha:";
+            lblFecha->Location = Point(450, 85);
+            lblFecha->Size = System::Drawing::Size(60, 24);
+            lblFecha->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblFecha);
 
-                tbs[i + 5] = gcnew TextBox();
-                tbs[i + 5]->Location = Point(320, y);
-                tbs[i + 5]->Size = System::Drawing::Size(120, 20);
-                tbs[i + 5]->ReadOnly = true;
-                panelDetallesFactura->Controls->Add(tbs[i + 5]);
-                y += 25;
-            }
+            textFieldFecha = gcnew TextBox();
+            textFieldFecha->ReadOnly = true;
+            textFieldFecha->Location = Point(515, 85);
+            textFieldFecha->Size = System::Drawing::Size(200, 24);
+            panelDetallesFactura->Controls->Add(textFieldFecha);
 
-            textFieldNumeroFactura = tbs[0];
-            textFieldFecha = tbs[1];
-            textFieldNombreCliente = tbs[2];
-            textFieldApellidoCliente = tbs[3];
-            textFieldDNICliente = tbs[4];
-            textFieldDireccionCliente = tbs[5];
-            textFieldNombreVendedor = tbs[6];
-            textFieldApellidoVendedor = tbs[7];
-            textFieldIDCliente = tbs[8];
-            textFieldIDVendedor = tbs[9];
+            // Cliente GroupBox
+            auto groupCliente = gcnew GroupBox();
+            groupCliente->Text = L"CLIENTE";
+            groupCliente->Font = gcnew System::Drawing::Font(L"Arial", 9, FontStyle::Bold);
+            groupCliente->Location = Point(10, 120);
+            groupCliente->Size = System::Drawing::Size(370, 150);
+            panelDetallesFactura->Controls->Add(groupCliente);
 
-            y += 10;
-            array<String^>^ finLbls = { L"Subtotal:", L"Descuento:", L"Descontado:", L"Total:" };
-            array<TextBox^>^ finTbs = gcnew array<TextBox^>(4);
-            for (int i = 0; i < 4; i++) {
+            array<String^>^ clLbls = { L"ID:", L"Nombre:", L"Apellido:", L"DNI:", L"Direccion:" };
+            array<TextBox^>^ clTbs = gcnew array<TextBox^>(5);
+            int clY = 20;
+            for (int r = 0; r < 5; r++) {
                 auto lbl = gcnew Label();
-                lbl->Text = finLbls[i];
-                lbl->Location = Point(20 + (i % 2) * 220, y);
-                lbl->Size = System::Drawing::Size(80, 20);
-                panelDetallesFactura->Controls->Add(lbl);
+                lbl->Text = clLbls[r];
+                lbl->Location = Point(10, clY);
+                lbl->Size = System::Drawing::Size(65, 22);
+                lbl->TextAlign = ContentAlignment::MiddleLeft;
+                groupCliente->Controls->Add(lbl);
 
-                finTbs[i] = gcnew TextBox();
-                finTbs[i]->Location = Point(100 + (i % 2) * 220, y);
-                finTbs[i]->Size = System::Drawing::Size(100, 20);
-                finTbs[i]->ReadOnly = true;
-                panelDetallesFactura->Controls->Add(finTbs[i]);
+                clTbs[r] = gcnew TextBox();
+                clTbs[r]->ReadOnly = true;
+                clTbs[r]->Location = Point(80, clY);
+                clTbs[r]->Size = System::Drawing::Size(275, 22);
+                groupCliente->Controls->Add(clTbs[r]);
 
-                if (i % 2 == 1) y += 25;
+                clY += 26;
             }
-            textFieldSubtotal = finTbs[0];
-            textFieldPorcentajeDescuento = finTbs[1];
-            textFieldDescontado = finTbs[2];
-            textFieldTotal = finTbs[3];
+            textFieldIDCliente = clTbs[0];
+            textFieldNombreCliente = clTbs[1];
+            textFieldApellidoCliente = clTbs[2];
+            textFieldDNICliente = clTbs[3];
+            textFieldDireccionCliente = clTbs[4];
 
+            // Vendedor GroupBox
+            auto groupVendedor = gcnew GroupBox();
+            groupVendedor->Text = L"VENDEDOR";
+            groupVendedor->Font = gcnew System::Drawing::Font(L"Arial", 9, FontStyle::Bold);
+            groupVendedor->Location = Point(395, 120);
+            groupVendedor->Size = System::Drawing::Size(370, 150);
+            panelDetallesFactura->Controls->Add(groupVendedor);
+
+            array<String^>^ vdLbls = { L"ID:", L"Nombre:", L"Apellido:" };
+            array<TextBox^>^ vdTbs = gcnew array<TextBox^>(3);
+            int vdY = 20;
+            for (int r = 0; r < 3; r++) {
+                auto lbl = gcnew Label();
+                lbl->Text = vdLbls[r];
+                lbl->Location = Point(10, vdY);
+                lbl->Size = System::Drawing::Size(65, 22);
+                lbl->TextAlign = ContentAlignment::MiddleLeft;
+                groupVendedor->Controls->Add(lbl);
+
+                vdTbs[r] = gcnew TextBox();
+                vdTbs[r]->ReadOnly = true;
+                vdTbs[r]->Location = Point(80, vdY);
+                vdTbs[r]->Size = System::Drawing::Size(275, 22);
+                groupVendedor->Controls->Add(vdTbs[r]);
+
+                vdY += 26;
+            }
+            textFieldIDVendedor = vdTbs[0];
+            textFieldNombreVendedor = vdTbs[1];
+            textFieldApellidoVendedor = vdTbs[2];
+
+            // Detalles table
             tableDetalles = gcnew DataGridView();
-            tableDetalles->Location = Point(20, y + 10);
-            tableDetalles->Size = System::Drawing::Size(740, 200);
+            tableDetalles->Location = Point(10, 280);
+            tableDetalles->Size = System::Drawing::Size(780, 235);
             tableDetalles->AllowUserToAddRows = false;
             tableDetalles->AllowUserToDeleteRows = false;
             tableDetalles->ReadOnly = true;
             tableDetalles->AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode::Fill;
             panelDetallesFactura->Controls->Add(tableDetalles);
 
-            volverButton = gcnew Button();
-            volverButton->Text = L"Volver";
-            volverButton->Location = Point(680, y + 220);
-            volverButton->Size = System::Drawing::Size(100, 30);
-            panelDetallesFactura->Controls->Add(volverButton);
+            // Totals row 1: Subtotal + % Descuento
+            auto lblSubtotal = gcnew Label();
+            lblSubtotal->Text = L"Subtotal:";
+            lblSubtotal->Location = Point(130, 525);
+            lblSubtotal->Size = System::Drawing::Size(80, 24);
+            lblSubtotal->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblSubtotal);
+
+            textFieldSubtotal = gcnew TextBox();
+            textFieldSubtotal->ReadOnly = true;
+            textFieldSubtotal->Location = Point(215, 525);
+            textFieldSubtotal->Size = System::Drawing::Size(150, 24);
+            panelDetallesFactura->Controls->Add(textFieldSubtotal);
+
+            auto lblPctDesc = gcnew Label();
+            lblPctDesc->Text = L"% Descuento:";
+            lblPctDesc->Location = Point(420, 525);
+            lblPctDesc->Size = System::Drawing::Size(80, 24);
+            lblPctDesc->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblPctDesc);
+
+            textFieldPorcentajeDescuento = gcnew TextBox();
+            textFieldPorcentajeDescuento->ReadOnly = true;
+            textFieldPorcentajeDescuento->Location = Point(505, 525);
+            textFieldPorcentajeDescuento->Size = System::Drawing::Size(150, 24);
+            panelDetallesFactura->Controls->Add(textFieldPorcentajeDescuento);
+
+            // Totals row 2: Descontado + Total
+            auto lblDescontado = gcnew Label();
+            lblDescontado->Text = L"Descontado:";
+            lblDescontado->Location = Point(130, 555);
+            lblDescontado->Size = System::Drawing::Size(80, 24);
+            lblDescontado->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblDescontado);
+
+            textFieldDescontado = gcnew TextBox();
+            textFieldDescontado->ReadOnly = true;
+            textFieldDescontado->Location = Point(215, 555);
+            textFieldDescontado->Size = System::Drawing::Size(150, 24);
+            panelDetallesFactura->Controls->Add(textFieldDescontado);
+
+            auto lblTotal = gcnew Label();
+            lblTotal->Text = L"Total:";
+            lblTotal->Font = gcnew System::Drawing::Font(lblTotal->Font, FontStyle::Bold);
+            lblTotal->Location = Point(420, 555);
+            lblTotal->Size = System::Drawing::Size(80, 24);
+            lblTotal->TextAlign = ContentAlignment::MiddleRight;
+            panelDetallesFactura->Controls->Add(lblTotal);
+
+            textFieldTotal = gcnew TextBox();
+            textFieldTotal->ReadOnly = true;
+            textFieldTotal->Font = gcnew System::Drawing::Font(textFieldTotal->Font, FontStyle::Bold);
+            textFieldTotal->Location = Point(505, 555);
+            textFieldTotal->Size = System::Drawing::Size(150, 24);
+            panelDetallesFactura->Controls->Add(textFieldTotal);
         }
     };
 }

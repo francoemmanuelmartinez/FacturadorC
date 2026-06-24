@@ -74,7 +74,7 @@ namespace Controladores {
                     Convert::ToInt32(rs["id"]),
                     rs["numero_factura"]->ToString(),
                     rs["fecha_emision"]->ToString(),
-                    Convert::ToInt32(rs["total_compra"]),
+                    Convert::ToDouble(rs["total_compra"]),
                     rs["nombre_vendedor"]->ToString() + L" " + rs["apellido_vendedor"]->ToString()
                 });
             }
@@ -95,10 +95,10 @@ namespace Controladores {
                 vista->textFieldApellidoCliente->Text = rs["apellido_cliente"]->ToString();
                 vista->textFieldNombreVendedor->Text = rs["nombre_vendedor"]->ToString();
                 vista->textFieldApellidoVendedor->Text = rs["apellido_vendedor"]->ToString();
-                vista->textFieldSubtotal->Text = L"$ " + rs["subtotal"]->ToString();
-                vista->textFieldPorcentajeDescuento->Text = rs["descuento_porcentaje"]->ToString() + L"%";
-                vista->textFieldDescontado->Text = L"$ " + rs["valor_descontado"]->ToString();
-                vista->textFieldTotal->Text = L"$ " + rs["total_compra"]->ToString();
+                vista->textFieldSubtotal->Text = L"$ " + Convert::ToDouble(rs["subtotal"]).ToString(L"F2");
+                vista->textFieldPorcentajeDescuento->Text = Convert::ToInt32(rs["descuento_porcentaje"]).ToString() + L"%";
+                vista->textFieldDescontado->Text = L"$ " + Convert::ToDouble(rs["valor_descontado"]).ToString(L"F2");
+                vista->textFieldTotal->Text = L"$ " + Convert::ToDouble(rs["total_compra"]).ToString(L"F2");
                 vista->textFieldDNICliente->Text = rs["dni"]->ToString();
                 vista->textFieldDireccionCliente->Text = rs["direccion"]->ToString();
                 vista->textFieldIDCliente->Text = rs["id_cliente"]->ToString();
@@ -127,9 +127,9 @@ namespace Controladores {
                     Convert::ToInt32(rs["id"]),
                     rs["descripcion"]->ToString(),
                     Convert::ToInt32(rs["cantidad"]),
-                    Convert::ToInt32(rs["precio_unitario"]),
+                    Convert::ToDouble(rs["precio_unitario"]),
                     Convert::ToInt32(rs["descuento"]),
-                    Convert::ToInt32(rs["subtotal"])
+                    Convert::ToDouble(rs["subtotal"])
                 );
             }
             rs->Close();
