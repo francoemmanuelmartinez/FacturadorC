@@ -108,6 +108,10 @@ namespace Controladores {
 
             String^ descuentoStr = this->vista->textFieldDescuentoProducto->Text->Trim();
             int descuento = String::IsNullOrEmpty(descuentoStr) ? 0 : Int32::Parse(descuentoStr);
+            if (descuento < 0 || descuento > 100) {
+                MessageBox::Show(L"El descuento debe ser entre 0 y 100");
+                return;
+            }
             double subtotal = precio * cantidad * (100 - descuento) / 100.0;
 
             this->vista->tableCarrito->Rows->Add(idStr, descripcion, precio, cantidad, descuento + L"%", subtotal);
@@ -222,6 +226,10 @@ namespace Controladores {
             double subtotalVal = Double::Parse(this->vista->textFieldSubtotal->Text->Trim());
             String^ descuentoStrVal = this->vista->textFieldDescuento->Text->Trim();
             int descuentoPorcentaje = String::IsNullOrEmpty(descuentoStrVal) ? 0 : Int32::Parse(descuentoStrVal);
+            if (descuentoPorcentaje < 0 || descuentoPorcentaje > 100) {
+                MessageBox::Show(L"El descuento debe ser entre 0 y 100");
+                return;
+            }
             double totalVal = Double::Parse(this->vista->textFieldTotal->Text->Trim());
             double valorDescontadoVal = subtotalVal - totalVal;
 

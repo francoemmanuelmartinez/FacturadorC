@@ -137,7 +137,7 @@ namespace Controladores {
             int habilitadoActual = safe_cast<int>(fila->Cells[8]->Value);
             String^ nuevoEstado = habilitadoActual == 1 ? L"deshabilitar" : L"habilitar";
             if (habilitadoActual == 1 && fila->Cells[6]->Value->ToString() == L"Administrador") {
-                int idActual = this->usuario != nullptr ? Convert::ToInt32(this->usuario->Id) : 0;
+                int idActual = Convert::ToInt32(fila->Tag);
                 if (!ValidadorCantidadAdmin::permitirDeshabilitar(idActual)) return;
             }
             auto result = MessageBox::Show(L"?Esta seguro de " + nuevoEstado + L" al usuario con DNI " + dni + L"?",
